@@ -1,0 +1,37 @@
+{
+  "compilerOptions": {
+    // When `true`, this allows use of `import` syntax such as `import x from 'xyz'`.
+    //"esModuleInterop": true,
+
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "ES2023",
+    "useDefineForClassFields": true,
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ES2022",
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "strict": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    }
+  },
+  "$schema": "https://json.schemastore.org/tsconfig.json",
+  "include": ["src", "*.ts", "*.tsx"]
+}

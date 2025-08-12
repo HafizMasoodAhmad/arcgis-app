@@ -1,0 +1,160 @@
+/*
+    Bootstrap theme overrides
+    - Primary: #16336a
+    - Secondary: #088944
+*/
+:root {
+    /* Theme tokens */
+    --theme-primary: #16336a;
+    --theme-primary-rgb: 8, 68, 130;
+    --theme-secondary: #088944;
+    --theme-secondary-rgb: 8, 137, 68;
+
+    /* Map to Bootstrap CSS variables */
+    --bs-primary: var(--theme-primary);
+    --bs-primary-rgb: var(--theme-primary-rgb);
+    --bs-secondary: var(--theme-secondary);
+    --bs-secondary-rgb: var(--theme-secondary-rgb);
+
+    /* Common UI hooks */
+    --bs-link-color: var(--theme-primary);
+    --bs-link-hover-color: #063564;
+    --bs-nav-pills-link-active-bg: var(--theme-primary);
+
+    /* Escala de color de claro a oscuro basada en #16336a (primary-500) */
+    --primary-100: #5e82c5; /* Much lighter */
+    --primary-200: #466aad; /* Lighter */
+    --primary-300: #315394; /* Light */
+    --primary-400: #1f3f7a; /* Medium-light */
+    --primary-500: #16336a; /* Main color (#16336a) */
+    --primary-600: #122a57; /* Slightly darker */
+    --primary-700: #0e2043; /* Darker */
+    --primary-800: #0a182f; /* Much darker */
+    --primary-900: #050c18; /* Even darker */
+
+    --white: #ffffff;
+    --black: #000000;
+    
+    --gray-100: #f8f9fa;
+    --gray-200: #e9ecef;
+    --gray-300: #dee2e6;
+    --gray-400: #ced4da;
+    --gray-500: #adb5bd;
+
+    /* Bootstrap border radius overrides */
+    --bs-border-radius: 0;
+    --bs-border-radius-sm: 0;
+    --bs-border-radius-lg: 0;
+    --bs-border-radius-xl: 0;
+    --bs-border-radius-xxl: 0;
+    --bs-border-radius-pill: 0;
+
+    /* Component-specific radius overrides */
+    --bs-btn-border-radius: 0;
+    --bs-dropdown-border-radius: 0;
+    --bs-modal-border-radius: 0;
+    --bs-card-border-radius: 0;
+    --bs-alert-border-radius: 0;
+    --bs-badge-border-radius: 0;
+    --bs-tooltip-border-radius: 0;
+    --bs-popover-border-radius: 0;
+    --bs-toast-border-radius: 0;
+    --bs-list-group-border-radius: 0;
+    --bs-nav-pills-border-radius: 0;
+}
+
+/* Forzar tema oscuro en widgets Calcite/ArcGIS */
+arcgis-legend,
+arcgis-basemap-gallery,
+.calcite-mode-dark,
+[calcite-mode="dark"] {
+    /* Fondo y texto en modo oscuro dentro de shadow DOM (Calcite variables) */
+    --calcite-ui-foreground-1: var(--primary-800);
+    --calcite-ui-text-1: var(--primary-100);
+    --calcite-ui-foreground-2: var(--primary-700);
+    --calcite-ui-border-1: var(--primary-600);
+}
+
+/* Buttons - primary */
+.btn-primary {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: var(--theme-primary);
+    --bs-btn-border-color: var(--theme-primary);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #073b72;
+    --bs-btn-hover-border-color: #073769;
+    --bs-btn-focus-shadow-rgb: var(--theme-primary-rgb);
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #063464;
+    --bs-btn-active-border-color: #05315d;
+    --bs-btn-disabled-bg: var(--theme-primary);
+    --bs-btn-disabled-border-color: var(--theme-primary);
+}
+
+.btn-outline-primary {
+    --bs-btn-color: var(--theme-primary);
+    --bs-btn-border-color: var(--theme-primary);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: var(--theme-primary);
+    --bs-btn-hover-border-color: var(--theme-primary);
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #063464;
+    --bs-btn-active-border-color: #05315d;
+    --bs-btn-focus-shadow-rgb: var(--theme-primary-rgb);
+}
+
+/* Buttons - secondary */
+.btn-secondary {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: var(--theme-secondary);
+    --bs-btn-border-color: var(--theme-secondary);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #077a3d;
+    --bs-btn-hover-border-color: #07733a;
+    --bs-btn-focus-shadow-rgb: var(--theme-secondary-rgb);
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #066c36;
+    --bs-btn-active-border-color: #066633;
+    --bs-btn-disabled-bg: var(--theme-secondary);
+    --bs-btn-disabled-border-color: var(--theme-secondary);
+}
+
+.btn-outline-secondary {
+    --bs-btn-color: var(--theme-secondary);
+    --bs-btn-border-color: var(--theme-secondary);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: var(--theme-secondary);
+    --bs-btn-hover-border-color: var(--theme-secondary);
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #066c36;
+    --bs-btn-active-border-color: #066633;
+    --bs-btn-focus-shadow-rgb: var(--theme-secondary-rgb);
+}
+
+/* Form controls focus outline to match primary */
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus {
+    box-shadow: 0 0 0 .25rem rgba(var(--theme-primary-rgb), .25);
+    border-color: rgba(var(--theme-primary-rgb), .5);
+}
+
+/* Search input placeholder color for dark backgrounds */
+.search-input::placeholder {
+    color: var(--primary-100);
+    opacity: 0.8;
+}
+.search-input::-webkit-input-placeholder {
+    color: var(--primary-100);
+    opacity: 0.8;
+}
+.search-input::-moz-placeholder {
+    color: var(--primary-100);
+    opacity: 0.8;
+}
+.search-input:-ms-input-placeholder {
+    color: var(--primary-100);
+}
+.search-input::-ms-input-placeholder {
+    color: var(--primary-100);
+}

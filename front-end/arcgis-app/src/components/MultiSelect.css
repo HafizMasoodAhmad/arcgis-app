@@ -1,0 +1,118 @@
+/* Styles for MultiSelect component */
+
+.multi-select-container {
+    position: relative;
+}
+
+.multi-select-input {
+    cursor: pointer;
+    min-height: 30px;
+    padding: 6px 12px;
+    padding-right: 40px;
+    border: 1px solid var(--primary-400);
+    background-color: var(--primary-800);
+    color: var(--primary-100);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+
+    /* Dropdown arrow icon */
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right .75rem center;
+    background-size: 16px 12px;
+}
+
+.multi-select-placeholder {
+    color: #6c757d;
+}
+
+.multi-select-chip {
+    background-color: var(--primary-800);
+    border: 1px solid var(--primary-700);
+    padding: 2px 8px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.remove-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    color: #fff;
+    padding: 0;
+    margin-left: 4px;
+}
+
+.multi-select-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--primary-600);
+    color: var(--primary-100);
+    border: 1px solid var(--primary-400);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.multi-select-clear {
+    border-bottom: 1px solid var(--primary-400);
+    background-color: var(--primary-600);
+}
+
+.multi-select-clear-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #c2999c;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 4px 8px;
+    width: 100%;
+    text-align: left;
+}
+
+.multi-select-clear-button:hover {
+    background-color: #f1f3f4;
+}
+
+.multi-select-option {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    background-color: transparent;
+}
+
+.multi-select-option:hover {
+    background-color: var(--primary-700);
+}
+
+.multi-select-option.is-selected {
+    background-color: var(--primary-800);
+}
+
+.multi-select-option.is-selected:hover {
+    background-color: var(--primary-900);
+}
+
+.multi-select-option input {
+    margin-right: 8px;
+}
+
+.multi-select-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 999;
+}
+
+

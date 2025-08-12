@@ -1,0 +1,86 @@
+@section Scripts {
+    <script src="~/js/arcgis/database.js"></script>
+    <script src="~/js/arcgis/filter.js"></script>
+    <script src="~/js/arcgis/treatment.js"></script>
+    <script src="~/js/arcgis/projects.js"></script>
+}
+
+<script>
+    // Llamar a la función initMap cuando el DOM esté completamente cargado
+    document.addEventListener("DOMContentLoaded", function () {
+        initMap();
+    });
+</script>
+
+<div class="w-100 h-100 position-relative">    
+    <div id="loading-overlay" class="loading-overlay w-100 h-100 position-absolute d-none">
+        <div class="loading-spinner"></div>
+    </div>
+    <div class="w-100 h-100 d-flex flex-column overflow-hidden p-3">
+        <div class="d-flex gap-2 w-100">
+            <button class="btn btn-primary w-100" onclick="importScenario()">Import scenario</button>
+            <button class="btn btn-primary w-100" onclick="openProjects()">Project information</button>
+        </div>
+        <div class="filters mt-2 d-flex gap-2">
+            <div class="d-flex gap-2 pe-2" style="width: 500px; border-right: 2px solid #ccc;">
+                <select class="form-select" name="user_id" id="user_id" data-filter="user" onchange="changeUser(this.value)" style="border-color: #0D6CF8;">
+                    <option value="">Select User</option>
+                </select>
+                <select class="form-select" name="scenario_id" id="scenario_id" data-filter="scenario" value="" onchange="changeScenario(this.value)" style="border-color: #0D6CF8;">
+                    <option value="">Select Scenario</option>
+                </select>
+            </div>
+            <form id="filterForm" class="d-flex gap-2 w-100" onSubmit="applyFilter(event)">
+                <!-- Dependent filters -->
+
+                <select class="form-select" name="year">
+                    <option value="">Select Year</option>
+                </select>
+                <select class="form-select" name="asset_type">
+                    <option value="">Select Asset Type</option>
+                </select>
+                <select class="form-select" name="treatment">
+                    <option value="">Select Treatment</option>
+                </select>
+                <select class="form-select" name="route">
+                    <option value="">Select Route</option>
+                </select>
+                
+                <button type="submit" class="btn btn-primary">Filter</button>
+                <button type="reset" class="btn btn-primary">Reset</button>
+            </form>
+        </div>
+        <div class="w-100 h-100 mt-2">
+            <arcgis-map id="mapContainer">
+                <arcgis-home position="top-left"></arcgis-home>            
+                <arcgis-expand position="top-left" group="top-left">
+                    <arcgis-legend></arcgis-legend>
+                </arcgis-expand>
+                <arcgis-expand position="top-left" group="top-left">
+                    <arcgis-layer-list></arcgis-layer-list>
+                </arcgis-expand>
+                <arcgis-expand position="top-left" group="top-left">
+                    <arcgis-basemap-gallery></arcgis-basemap-gallery>
+                </arcgis-expand>
+            </arcgis-map>
+        </div>
+
+        <!-- Modal of project information, hidden by default -->
+        <div class="modal fade " id="projectInfoModal" tabindex="-1" aria-labelledby="projectInfoModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content d-flex flex-column" style="max-height: 90vh;">
+                    <!-- Modal header with the title -->
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="projectInfoModalLabel">Project information</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <!-- Modal body empty by default -->
+                    <div class="modal-body d-flex flex-column gap-2 overflow-hidden h-100">
+                        <div id="projectInfoBody" class="h-100 overflow-auto"> </div>
+                        <button class="btn btn-primary">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
