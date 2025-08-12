@@ -33,10 +33,14 @@ export const Filter = forwardRef<FilterRef, FilterProps>(({ onReset }, ref ) => 
         treatment: [],
         route: []
     });
+
+    const [selectedValues, setSelectedValues] = useState<{year: string[]; asset_type: string[]; treatment: string[]; route: string[]}>({
+        year: [], asset_type: [], treatment: [], route: []
+    });
     
     useEffect(() => {
         formRef.current?.addEventListener('reset', () => {            
-            resetFilter();
+            resetFilter(true);
             onReset && onReset();
         });
     }, [])
@@ -44,8 +48,12 @@ export const Filter = forwardRef<FilterRef, FilterProps>(({ onReset }, ref ) => 
     useImperativeHandle(ref, () => ({
         resetScenario,
         changeScenarioByImport,
-        fillSelectById
-    }));
+        fillSelectById,
+        // Forzar reset total desde afuera
+        hardResetAllFilters: async () => {
+            await resetFilter(true);
+        }
+    }) as any);
 
     const changeScenarioByImport = (userId: string, scenarioId: string) => {
         resetScenario();
@@ -104,7 +112,7 @@ export const Filter = forwardRef<FilterRef, FilterProps>(({ onReset }, ref ) => 
         });
     }
 
-    const resetFilter = async() => {
+    const resetFilter = async(forceFullReset?: boolean) => {
         toggleLoading(true);
 
         let featureLayer = getFeatureLayer();
@@ -119,15 +127,32 @@ export const Filter = forwardRef<FilterRef, FilterProps>(({ onReset }, ref ) => 
             treatment: [],
             route: []
         });
+        setSelectedValues({ year: [], asset_type: [], treatment: [], route: [] });
     
         const scenarioSelect = scenarioRef.current as HTMLSelectElement;
         if(scenarioSelect) {
             scenarioSelect.value = "";
         }
-    
         changeSelectedScenario("");
+
+        // También limpiar usuario si es un reset total
+        if (forceFullReset) {
+            const userSelect = userRef.current as HTMLSelectElement;
+            if (userSelect) userSelect.value = "";
+            changeSelectedUser("");
+            // Vaciar las opciones de User y Scenario para que queden como los demás filtros
+            fillSelectOptions(userSelect, 'Select User', []);
+            fillSelectOptions(scenarioSelect, 'Select Scenario', []);
+        }
     
         toggleLoading(false);
+
+        // Quitar definitionExpression si existía y notificar cambio
+        try {
+            featureLayer.definitionExpression = null as any;
+            featureLayer.refresh?.();
+        } catch {}
+        window.dispatchEvent(new CustomEvent('filter-updated', { detail: {} }));
     }
 
     const fillSelectOptions = (select: HTMLSelectElement | any, emptyText: string, options: { value: string, label: string }[]) => {
@@ -194,6 +219,38 @@ export const Filter = forwardRef<FilterRef, FilterProps>(({ onReset }, ref ) => 
         });
 
         toggleLoadingScenario(false);
+
+        // Notificar a otros componentes (Projects, Charts) que deben recargar datos
+        window.dispatchEvent(new CustomEvent('filter-updated', { detail: {} }));
+
+        // Restaurar filtros persistidos para este escenario (si existen)
+        try {
+            const savedRaw = localStorage.getItem(`pdot:filters:${scenarioId}`);
+            if (savedRaw) {
+                const saved = JSON.parse(savedRaw) as {route?: string[]; year?: string[]; asset_type?: string[]; treatment?: string[]};
+                const routeSel = Array.isArray(saved.route) ? saved.route : [];
+                const yearSel = Array.isArray(saved.year) ? saved.year : [];
+                const assetSel = Array.isArray(saved.asset_type) ? saved.asset_type : [];
+                const treatSel = Array.isArray(saved.treatment) ? saved.treatment : [];
+                setSelectedValues({ year: yearSel, asset_type: assetSel, treatment: treatSel, route: routeSel });
+
+                const whereClauses: string[] = [];
+                if (routeSel.length > 0) whereClauses.push(`Route IN (${routeSel.join(',')})`);
+                if (yearSel.length > 0) whereClauses.push(`Year IN (${yearSel.join(',')})`);
+                if (assetSel.length > 0) whereClauses.push(`AssetType IN ('${assetSel.join("','")}')`);
+                if (treatSel.length > 0) whereClauses.push(`Treatment IN ('${treatSel.join("','")}')`);
+
+                const featureLayer = getFeatureLayer();
+                featureLayer.definitionExpression = whereClauses.join(' AND ');
+                featureLayer.refresh?.();
+
+                changeFilterValues({ route: routeSel, year: yearSel, assetType: assetSel, treatment: treatSel });
+
+                const useCostBasedSymbology = whereClauses.length > 0;
+                window.dispatchEvent(new CustomEvent('symbologyUpdate', { detail: { useCostBasedSymbology } }));
+                window.dispatchEvent(new CustomEvent('filter-updated', { detail: {} }));
+            }
+        } catch {}
     }
 
     const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -249,6 +306,22 @@ export const Filter = forwardRef<FilterRef, FilterProps>(({ onReset }, ref ) => 
         }
 
         changeFilterValues(newFilterValues);
+        // Actualizar selección local y persistir por escenario
+        setSelectedValues({
+            year: selectedProjectYears,
+            asset_type: selectedAssetType,
+            treatment: selectedTreatment,
+            route: selectedRoutes
+        });
+        try {
+            const scen = getSelectedScenario();
+            localStorage.setItem(`pdot:filters:${scen}`, JSON.stringify({
+                route: selectedRoutes,
+                year: selectedProjectYears,
+                asset_type: selectedAssetType,
+                treatment: selectedTreatment
+            }));
+        } catch {}
         
         const featureLayer = getFeatureLayer();
 
@@ -317,17 +390,17 @@ export const Filter = forwardRef<FilterRef, FilterProps>(({ onReset }, ref ) => 
 
             <form className="d-flex flex-column gap-2" onSubmit={onSubmit} ref={formRef}>
                 {/* Dependent filters */}
-                <MultiSelect className="w-100" options={options.year} onChange={onChange} name="year" id="year" placeholder="Select Year"/>
-                <MultiSelect className="w-100" options={options.asset_type} onChange={onChange} name="asset_type" id="asset_type" placeholder="Select Asset Type"/>
-                <MultiSelect className="w-100" options={options.treatment} onChange={onChange} name="treatment" id="treatment" placeholder="Select Treatment"/>
-                <MultiSelect className="w-100" options={options.route} onChange={onChange} name="route" id="route" placeholder="Select Route"/>
+                <MultiSelect className="w-100" options={options.year} selectedValues={selectedValues.year} onChange={onChange} name="year" id="year" placeholder="Select Year"/>
+                <MultiSelect className="w-100" options={options.asset_type} selectedValues={selectedValues.asset_type} onChange={onChange} name="asset_type" id="asset_type" placeholder="Select Asset Type"/>
+                <MultiSelect className="w-100" options={options.treatment} selectedValues={selectedValues.treatment} onChange={onChange} name="treatment" id="treatment" placeholder="Select Treatment"/>
+                <MultiSelect className="w-100" options={options.route} selectedValues={selectedValues.route} onChange={onChange} name="route" id="route" placeholder="Select Route"/>
 
 
                 <button
                     type="reset"
                     className="btn btn-primary"
                     onClick={() => {
-                        resetFilter();
+                        resetFilter(true);
                     }}
                 >
                     Clear all filters

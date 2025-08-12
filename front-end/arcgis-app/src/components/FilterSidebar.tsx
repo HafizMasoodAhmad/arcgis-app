@@ -63,6 +63,23 @@ function FilterSidebar(props: FilterSidebarProps) {
                             </button>
 
                             <Separator className="mt-2 mb-2" />
+
+                            {/* Reset filtros persistidos */}
+                            <button
+                                className="btn w-100 d-flex justify-content-between"
+                                style={{ backgroundColor: 'var(--primary-700)', color: 'var(--primary-100)' }}
+                                title="Resetear filtros del escenario"
+                                onClick={() => {
+                                    try {
+                                        localStorage.removeItem(`pdot:filters:${scenario}`);
+                                        // Limpiar también UI y definitionExpression
+                                        (filterRef.current as any)?.hardResetAllFilters?.();
+                                    } catch {}
+                                }}
+                            >
+                                <span className="text-white">Reset filtros (escenario)</span>
+                                <i className="fa-solid fa-rotate-left pt-1"></i>
+                            </button>
                         </section>
                     )}
 

@@ -42,9 +42,12 @@ App_ASP_PDT/
 - **jQuery Validation** - Form validation
 - **jQuery Validation Unobtrusive** - Non-intrusive validation
 
-### Custom Scripts
-- **filter.js** - Filtering functionalities for ArcGIS
-- **treatment.js** - Data treatment functionalities for ArcGIS
+### Frontend (React + Vite)
+- `front-end/arcgis-app/` contiene la app React/TypeScript. Vite construye a `wwwroot/js/filter/`
+- Carga en Razor mediante el parcial `Views/Shared/_ReactFilterScripts.cshtml`.
+
+### Legacy
+- Los scripts en `wwwroot/js/arcgis/**` están deshabilitados en build/publish para evitar confusiones.
 
 ## Prerequisites
 
@@ -117,16 +120,28 @@ The project uses the following environment variables:
 - `Privacy()` - Privacy page
 - `Error()` - Error handling
 
-## ArcGIS Functionalities
+## Razor ↔ React integration and Import flow
 
-The project includes integration with ArcGIS JavaScript API:
+### Mounting React in Razor
+- `Views/Home/Index.cshtml` renderiza `<div id="react-filter">` y en `@section Scripts` incluye:
+  - `_TempDataToReact`: transfiere JSON desde `TempData` a `sessionStorage` si viene de importación.
+  - `_ReactFilterScripts`: carga `~/js/filter/bundle_filter.js` (sin Vite dev server).
 
-### JavaScript Files
-- **filter.js**: Implements filters for map layers
-- **treatment.js**: Handles geospatial data treatment
+### Import flow (Razor → React)
+1. Página `Home/JsonImport` (Razor) sube un archivo `.json`.
+2. `HomeController.JsonImport(POST)` valida esquema (Scenario/Projects/Treatments) y tipos básicos.
+3. Si es válido, guarda el JSON crudo en `TempData["ScenarioRawJson"]` y redirige a `Home/Index`.
+4. `_TempDataToReact` escribe en `sessionStorage`:
+   - `pdot:scenario:rawJson` y `pdot:scenario:pendingImport = '1'`.
+5. En `App.tsx` (React), al montar:
+   - Espera `initMap()` y `createSqlLiteDB()`.
+   - Si detecta `pendingImport`, llama `loadDataFromJson(raw)` para insertar en SQLite.
+   - Llama `filterRef.changeScenarioByImport(userId, scenId)` para poblar selects y cargar la capa.
 
-### Configuration
-ArcGIS scripts are located in `wwwroot/js/arcgis/` and are automatically loaded in corresponding views.
+### Filters persistence per scenario
+- `Filter.tsx` guarda selecciones por escenario en `localStorage` (`pdot:filters:<ScenarioId>`)
+- Al cambiar de escenario, restaura filtros, aplica `definitionExpression` y emite eventos para refrescar Projects/Charts.
+- Hay un botón "Reset filtros (escenario)" en el sidebar para limpiar la persistencia del escenario actual.
 
 ## Useful Commands
 

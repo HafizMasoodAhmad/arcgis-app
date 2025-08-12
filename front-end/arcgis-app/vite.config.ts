@@ -4,6 +4,7 @@ import path from 'path';
 
 // https://vite.dev/config/
 export default defineConfig({
+    base: '/js/filter/',
 	plugins: [react()],
 	resolve: {
 		alias: { '@': path.resolve(__dirname, 'src') }
@@ -13,10 +14,6 @@ export default defineConfig({
 		minify: false,
 		outDir: path.resolve(__dirname, '../../wwwroot/js/filter'), 
 		emptyOutDir: true,
-		watch: {
-			include: 'src/**',
-			exclude: 'node_modules/**'
-		},
 		rollupOptions: {
 			external: ["vite.svg"],
 			input: path.resolve(__dirname, 'src/main.tsx'),

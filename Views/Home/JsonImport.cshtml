@@ -1,0 +1,43 @@
+@model App_ASP_PDT.Models.JsonImportViewModel
+@{
+    ViewData["Title"] = "JSON Import";
+}
+
+<div class="container py-4">
+    <h3>JSON Import</h3>
+    <p>Seleccione un archivo .json con el escenario para cargarlo en la aplicación.</p>
+
+    <div class="card">
+        <div class="card-body">
+            <form asp-action="JsonImport" asp-controller="Home" method="post" enctype="multipart/form-data" class="d-flex align-items-center gap-2">
+                <input name="file" type="file" accept="application/json,.json" class="form-control" style="max-width: 420px;" />
+                <button type="submit" class="btn btn-primary">Import scenario</button>
+                @Html.AntiForgeryToken()
+            </form>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        @if (!string.IsNullOrEmpty(Model?.Error))
+        {
+            <div class="alert alert-danger">@Model.Error</div>
+        }
+        @if (Model?.ValidationErrors?.Count > 0)
+        {
+            <div class="alert alert-warning">
+                <ul class="mb-0">
+                    @foreach (var err in Model.ValidationErrors)
+                    {
+                        <li>@err</li>
+                    }
+                </ul>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(Model?.Message))
+        {
+            <div class="alert alert-success">@Model.Message</div>
+        }
+    </div>
+</div>
+
+

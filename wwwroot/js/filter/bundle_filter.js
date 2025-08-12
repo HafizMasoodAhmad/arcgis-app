@@ -1,4 +1,4 @@
-import { r as reactExports, j as jsxRuntimeExports, s, y, T, d as d$1, i as initSqlJs, u as use, a as init, b as install, c as install$1, e as install$2, f as install$3, g as install$4, h as install$5, k as s$1, C as C$1, l as f, X as Xe, m as a, n as clientExports } from "./assets/vendor-DuNXxl0p.js";
+import { r as reactExports, j as jsxRuntimeExports, s, y, T, d as d$1, i as initSqlJs, u as use, a as init, b as install, c as install$1, e as install$2, f as install$3, g as install$4, h as install$5, k as s$1, C as C$1, l as f, X as Xe, m as a, n as clientExports } from "./assets/vendor-UJE5oZOo.js";
 const AuthContext = reactExports.createContext(void 0);
 const AppProvider = ({ children }) => {
   const [isLoading, setIsLoading] = reactExports.useState(false);
@@ -117,9 +117,8 @@ const AppProvider = ({ children }) => {
             )
         `);
   };
-  const loadDataFromFile = async (file) => {
-    const fileContent = await file.text();
-    const jsonData = JSON.parse(fileContent);
+  const loadDataFromJson = async (rawJson) => {
+    const jsonData = JSON.parse(rawJson);
     const scenario2 = jsonData.Scenario;
     const projects = jsonData.Projects;
     const treatments = jsonData.Treatments;
@@ -154,6 +153,10 @@ const AppProvider = ({ children }) => {
             `, [projectId, treatment.TreatmentId || null, treatment.ProjType || null, treatment.Treatment || null, treatment.TreatType || null, treatment.Dist || null, treatment.Cnty || null, treatment.Rte || null, treatment.Dir || null, treatment.FromSection || null, treatment.ToSection || null, treatment.BRKEY || null, treatment.BRIDGE_ID || null, treatment.Owner || null, treatment.COUNTY || null, treatment["MPO/RPO"] || null, treatment.Year || null, treatment.Cost || null, treatment.Benefit || null, treatment.PreferredYear || null, treatment.MinYear || null, treatment.MaxYear || null, treatment.PriorityOrder || null, treatment.IsCommitted || null, treatment.Risk || null, treatment.IndirectCostDesign || null, treatment.IndirectCostOther || null, treatment.IndirectCostROW || null, treatment.IndirectCostUtilities || null, treatment["B/C"] || null, treatment.MPMSID || null]);
     }
     return scenario2;
+  };
+  const loadDataFromFile = async (file) => {
+    const fileContent = await file.text();
+    return await loadDataFromJson(fileContent);
   };
   const getScenariosFromDB = (userId) => {
     try {
@@ -616,6 +619,7 @@ const AppProvider = ({ children }) => {
     toggleLoadingScenario,
     createSqlLiteDB,
     loadDataFromFile,
+    loadDataFromJson,
     getScenariosFromDB,
     getProjectsFromDB,
     getTreatmentsFromDB,
@@ -646,6 +650,9 @@ const Projects = () => {
   const labelStyle = { color: "var(--primary-100)" };
   reactExports.useEffect(() => {
     loadProjects();
+    const handler = () => loadProjects();
+    window.addEventListener("filter-updated", handler);
+    return () => window.removeEventListener("filter-updated", handler);
   }, []);
   const loadProjects = () => {
     let filterValues = getFilterValues();
@@ -1108,7 +1115,7 @@ const Charts = () => {
   const chartsRef = reactExports.useRef(null);
   const totalCostGraph = reactExports.useRef(null);
   const treatmentBreakdownGraph = reactExports.useRef(null);
-  reactExports.useLayoutEffect(() => {
+  const computeAndRender = () => {
     let filterValues = getFilterValues();
     let scenarioId = getSelectedScenario();
     const treatments = getTreatmentsFiltered(scenarioId, filterValues);
@@ -1137,6 +1144,12 @@ const Charts = () => {
     if (chartsRef.current) {
       ro.observe(chartsRef.current);
     }
+  };
+  reactExports.useLayoutEffect(() => {
+    computeAndRender();
+    const handler = () => computeAndRender();
+    window.addEventListener("filter-updated", handler);
+    return () => window.removeEventListener("filter-updated", handler);
   }, []);
   const initOptionsTotalCost = (totalCostByYear) => {
     let years = Object.keys(totalCostByYear);
@@ -1405,17 +1418,27 @@ const Filter = reactExports.forwardRef(({ onReset }, ref) => {
     treatment: [],
     route: []
   });
+  const [selectedValues, setSelectedValues] = reactExports.useState({
+    year: [],
+    asset_type: [],
+    treatment: [],
+    route: []
+  });
   reactExports.useEffect(() => {
     var _a;
     (_a = formRef.current) == null ? void 0 : _a.addEventListener("reset", () => {
-      resetFilter();
+      resetFilter(true);
       onReset && onReset();
     });
   }, []);
   reactExports.useImperativeHandle(ref, () => ({
     resetScenario,
     changeScenarioByImport,
-    fillSelectById
+    fillSelectById,
+    // Forzar reset total desde afuera
+    hardResetAllFilters: async () => {
+      await resetFilter(true);
+    }
   }));
   const changeScenarioByImport = (userId, scenarioId) => {
     resetScenario();
@@ -1456,7 +1479,8 @@ const Filter = reactExports.forwardRef(({ onReset }, ref) => {
       [selectName]: optionsValues
     });
   };
-  const resetFilter = async () => {
+  const resetFilter = async (forceFullReset) => {
+    var _a;
     toggleLoading(true);
     let featureLayer = getFeatureLayer();
     const current = await featureLayer.queryFeatures();
@@ -1467,12 +1491,26 @@ const Filter = reactExports.forwardRef(({ onReset }, ref) => {
       treatment: [],
       route: []
     });
+    setSelectedValues({ year: [], asset_type: [], treatment: [], route: [] });
     const scenarioSelect = scenarioRef.current;
     if (scenarioSelect) {
       scenarioSelect.value = "";
     }
     changeSelectedScenario("");
+    if (forceFullReset) {
+      const userSelect = userRef.current;
+      if (userSelect) userSelect.value = "";
+      changeSelectedUser("");
+      fillSelectOptions(userSelect, "Select User", []);
+      fillSelectOptions(scenarioSelect, "Select Scenario", []);
+    }
     toggleLoading(false);
+    try {
+      featureLayer.definitionExpression = null;
+      (_a = featureLayer.refresh) == null ? void 0 : _a.call(featureLayer);
+    } catch {
+    }
+    window.dispatchEvent(new CustomEvent("filter-updated", { detail: {} }));
   };
   const fillSelectOptions = (select, emptyText, options2) => {
     if (!select) return;
@@ -1496,6 +1534,7 @@ const Filter = reactExports.forwardRef(({ onReset }, ref) => {
     fillSelectOptions(selectScenario, "Select Scenario", scenarios);
   };
   const changeScenario = async (scenarioId) => {
+    var _a;
     if (scenarioId === "") {
       resetFilter();
       return;
@@ -1521,6 +1560,31 @@ const Filter = reactExports.forwardRef(({ onReset }, ref) => {
       route: [...routeSet].sort().map((r) => ({ value: r, label: r }))
     });
     toggleLoadingScenario(false);
+    window.dispatchEvent(new CustomEvent("filter-updated", { detail: {} }));
+    try {
+      const savedRaw = localStorage.getItem(`pdot:filters:${scenarioId}`);
+      if (savedRaw) {
+        const saved = JSON.parse(savedRaw);
+        const routeSel = Array.isArray(saved.route) ? saved.route : [];
+        const yearSel = Array.isArray(saved.year) ? saved.year : [];
+        const assetSel = Array.isArray(saved.asset_type) ? saved.asset_type : [];
+        const treatSel = Array.isArray(saved.treatment) ? saved.treatment : [];
+        setSelectedValues({ year: yearSel, asset_type: assetSel, treatment: treatSel, route: routeSel });
+        const whereClauses = [];
+        if (routeSel.length > 0) whereClauses.push(`Route IN (${routeSel.join(",")})`);
+        if (yearSel.length > 0) whereClauses.push(`Year IN (${yearSel.join(",")})`);
+        if (assetSel.length > 0) whereClauses.push(`AssetType IN ('${assetSel.join("','")}')`);
+        if (treatSel.length > 0) whereClauses.push(`Treatment IN ('${treatSel.join("','")}')`);
+        const featureLayer = getFeatureLayer();
+        featureLayer.definitionExpression = whereClauses.join(" AND ");
+        (_a = featureLayer.refresh) == null ? void 0 : _a.call(featureLayer);
+        changeFilterValues({ route: routeSel, year: yearSel, assetType: assetSel, treatment: treatSel });
+        const useCostBasedSymbology = whereClauses.length > 0;
+        window.dispatchEvent(new CustomEvent("symbologyUpdate", { detail: { useCostBasedSymbology } }));
+        window.dispatchEvent(new CustomEvent("filter-updated", { detail: {} }));
+      }
+    } catch {
+    }
   };
   const onSubmit = (e) => {
     e.preventDefault();
@@ -1560,6 +1624,22 @@ const Filter = reactExports.forwardRef(({ onReset }, ref) => {
       newFilterValues.treatment = selectedTreatment;
     }
     changeFilterValues(newFilterValues);
+    setSelectedValues({
+      year: selectedProjectYears,
+      asset_type: selectedAssetType,
+      treatment: selectedTreatment,
+      route: selectedRoutes
+    });
+    try {
+      const scen = getSelectedScenario();
+      localStorage.setItem(`pdot:filters:${scen}`, JSON.stringify({
+        route: selectedRoutes,
+        year: selectedProjectYears,
+        asset_type: selectedAssetType,
+        treatment: selectedTreatment
+      }));
+    } catch {
+    }
     const featureLayer = getFeatureLayer();
     const definition = whereClauses.join(" AND ");
     featureLayer.definitionExpression = definition;
@@ -1622,17 +1702,17 @@ const Filter = reactExports.forwardRef(({ onReset }, ref) => {
       }
     ),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("form", { className: "d-flex flex-column gap-2", onSubmit, ref: formRef, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(MultiSelect, { className: "w-100", options: options.year, onChange, name: "year", id: "year", placeholder: "Select Year" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(MultiSelect, { className: "w-100", options: options.asset_type, onChange, name: "asset_type", id: "asset_type", placeholder: "Select Asset Type" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(MultiSelect, { className: "w-100", options: options.treatment, onChange, name: "treatment", id: "treatment", placeholder: "Select Treatment" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(MultiSelect, { className: "w-100", options: options.route, onChange, name: "route", id: "route", placeholder: "Select Route" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(MultiSelect, { className: "w-100", options: options.year, selectedValues: selectedValues.year, onChange, name: "year", id: "year", placeholder: "Select Year" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(MultiSelect, { className: "w-100", options: options.asset_type, selectedValues: selectedValues.asset_type, onChange, name: "asset_type", id: "asset_type", placeholder: "Select Asset Type" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(MultiSelect, { className: "w-100", options: options.treatment, selectedValues: selectedValues.treatment, onChange, name: "treatment", id: "treatment", placeholder: "Select Treatment" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(MultiSelect, { className: "w-100", options: options.route, selectedValues: selectedValues.route, onChange, name: "route", id: "route", placeholder: "Select Route" }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs(
         "button",
         {
           type: "reset",
           className: "btn btn-primary",
           onClick: () => {
-            resetFilter();
+            resetFilter(true);
           },
           children: [
             "Clear all filters",
@@ -1728,7 +1808,27 @@ function FilterSidebar(props) {
             ]
           }
         ),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(Separator, { className: "mt-2 mb-2" })
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Separator, { className: "mt-2 mb-2" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "button",
+          {
+            className: "btn w-100 d-flex justify-content-between",
+            style: { backgroundColor: "var(--primary-700)", color: "var(--primary-100)" },
+            title: "Resetear filtros del escenario",
+            onClick: () => {
+              var _a, _b;
+              try {
+                localStorage.removeItem(`pdot:filters:${scenario}`);
+                (_b = (_a = filterRef.current) == null ? void 0 : _a.hardResetAllFilters) == null ? void 0 : _b.call(_a);
+              } catch {
+              }
+            },
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-white", children: "Reset filtros (escenario)" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("i", { className: "fa-solid fa-rotate-left pt-1" })
+            ]
+          }
+        )
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -1802,7 +1902,7 @@ const LoadingScenario = () => {
 };
 s$1.portalUrl = "https://pennshare.maps.arcgis.com";
 function App() {
-  const { isLoading, isLoadingScenario, changeMapView, changeFeatureLayer, toggleLoading, toggleLoadingScenario, createSqlLiteDB, loadDataFromFile } = useApp();
+  const { isLoading, isLoadingScenario, changeMapView, changeFeatureLayer, toggleLoading, toggleLoadingScenario, createSqlLiteDB, loadDataFromFile, loadDataFromJson } = useApp();
   const [isOpenProjects, setIsOpenProjects] = reactExports.useState(false);
   const [isOpenCharts, setIsOpenCharts] = reactExports.useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = reactExports.useState(true);
@@ -1818,8 +1918,24 @@ function App() {
     modalCharts == null ? void 0 : modalCharts.addEventListener("hidden.bs.modal", () => {
       setIsOpenCharts(false);
     });
-    initMap();
-    createSqlLiteDB();
+    (async () => {
+      var _a;
+      try {
+        await initMap();
+        await createSqlLiteDB();
+        const pending = sessionStorage.getItem("pdot:scenario:pendingImport");
+        const raw = sessionStorage.getItem("pdot:scenario:rawJson");
+        if (pending === "1" && raw) {
+          toggleLoading(true);
+          const scenario = await loadDataFromJson(raw);
+          await ((_a = filterRef.current) == null ? void 0 : _a.changeScenarioByImport(scenario.LastRunBy, scenario.ScenId));
+          sessionStorage.removeItem("pdot:scenario:rawJson");
+        }
+      } finally {
+        toggleLoading(false);
+        sessionStorage.removeItem("pdot:scenario:pendingImport");
+      }
+    })();
   }, []);
   const initMap = async () => {
     var _a;

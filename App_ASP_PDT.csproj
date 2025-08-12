@@ -11,9 +11,31 @@
     <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="9.0.8" />
   </ItemGroup>
 
-  <Target Name="BuildClient" BeforeTargets="Publish">
+  <!-- Ensure wwwroot/js/arcgis is excluded from build/deploy to avoid legacy collisions -->
+  <ItemGroup>
+    <Content Remove="wwwroot\js\arcgis\**\*" />
+    <None Include="wwwroot\js\arcgis\**\*" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
+  </ItemGroup>
+
+  <Target Name="BuildClientBeforeStaticAssets" BeforeTargets="ComputeStaticWebAssets">
     <Exec WorkingDirectory="front-end/arcgis-app" Command="npm install" />
     <Exec WorkingDirectory="front-end/arcgis-app" Command="npm run build" />
   </Target>
+
+  <Target Name="BuildClientOnBuild" BeforeTargets="Build">
+    <Exec WorkingDirectory="front-end/arcgis-app" Command="npm install" />
+    <Exec WorkingDirectory="front-end/arcgis-app" Command="npm run build" />
+  </Target>
+
+  <Target Name="BuildClientOnPublish" BeforeTargets="Publish">
+    <Exec WorkingDirectory="front-end/arcgis-app" Command="npm install" />
+    <Exec WorkingDirectory="front-end/arcgis-app" Command="npm run build" />
+  </Target>
+
+  <!-- Remove legacy arcgis JS files from publish to avoid confusion -->
+  <ItemGroup>
+    <Content Remove="wwwroot\js\arcgis\**\*" />
+    <None Include="wwwroot\js\arcgis\**\*" CopyToPublishDirectory="Never" />
+  </ItemGroup>
 
 </Project>

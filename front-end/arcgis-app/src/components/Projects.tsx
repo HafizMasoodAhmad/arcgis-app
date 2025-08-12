@@ -65,6 +65,9 @@ export const Projects = () => {
 
     useEffect(() => {
         loadProjects();
+        const handler = () => loadProjects();
+        window.addEventListener('filter-updated', handler as any);
+        return () => window.removeEventListener('filter-updated', handler as any);
     }, []);
 
     const loadProjects = () => {

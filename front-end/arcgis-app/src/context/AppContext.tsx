@@ -29,6 +29,7 @@ export interface AppContextType {
     toggleLoadingScenario: (isLoading: boolean) => void;
     createSqlLiteDB: () => void,
     loadDataFromFile: (file: File) => Promise<any>,
+    loadDataFromJson: (rawJson: string) => Promise<any>,
     getScenariosFromDB: (userId: string) => any[],
     getProjectsFromDB: (scenarioId: string) => any[],
     getTreatmentsFromDB: (scenarioId: string) => any[],
@@ -179,10 +180,8 @@ export const AppProvider = ({children}: AppProviderProps) => {
         `);
     }
 
-    const loadDataFromFile = async (file: File) => {
-        // Convert file to json
-        const fileContent = await file.text();
-        const jsonData = JSON.parse(fileContent);
+    const loadDataFromJson = async (rawJson: string) => {
+        const jsonData = JSON.parse(rawJson);
     
         const scenario = jsonData.Scenario;
         const projects = jsonData.Projects;
@@ -230,6 +229,11 @@ export const AppProvider = ({children}: AppProviderProps) => {
         }
 
         return scenario;
+    }
+    
+    const loadDataFromFile = async (file: File) => {
+        const fileContent = await file.text();
+        return await loadDataFromJson(fileContent);
     }
     
     const getScenariosFromDB = (userId: string) => {
@@ -779,6 +783,7 @@ export const AppProvider = ({children}: AppProviderProps) => {
         toggleLoadingScenario,
         createSqlLiteDB,
         loadDataFromFile,
+        loadDataFromJson,
         getScenariosFromDB,
         getProjectsFromDB,
         getTreatmentsFromDB,

@@ -37,7 +37,7 @@ export const Charts = () => {
     const totalCostGraph = useRef<any>(null);
     const treatmentBreakdownGraph = useRef<any>(null);
 
-    useLayoutEffect(() => {
+    const computeAndRender = () => {
         let filterValues = getFilterValues();
         let scenarioId = getSelectedScenario();
         const treatments = getTreatmentsFiltered(scenarioId, filterValues);
@@ -73,6 +73,13 @@ export const Charts = () => {
         if(chartsRef.current) {
             ro.observe(chartsRef.current);
         }
+    }
+
+    useLayoutEffect(() => {
+        computeAndRender();
+        const handler = () => computeAndRender();
+        window.addEventListener('filter-updated', handler as any);
+        return () => window.removeEventListener('filter-updated', handler as any);
     }, []);
 
     const initOptionsTotalCost = (totalCostByYear: any) => {

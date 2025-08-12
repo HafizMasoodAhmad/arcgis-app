@@ -25,7 +25,7 @@ import FilterSidebar from "@/components/FilterSidebar";
 import { LoadingScenario } from "./components/LoadingScenario";
 
 function App() {
-    const { isLoading, isLoadingScenario, changeMapView, changeFeatureLayer, toggleLoading, toggleLoadingScenario, createSqlLiteDB, loadDataFromFile } = useApp();
+    const { isLoading, isLoadingScenario, changeMapView, changeFeatureLayer, toggleLoading, toggleLoadingScenario, createSqlLiteDB, loadDataFromFile, loadDataFromJson } = useApp();
 
     const [isOpenProjects, setIsOpenProjects] = useState<boolean>(false);
     const [isOpenCharts, setIsOpenCharts] = useState<boolean>(false);
@@ -48,8 +48,25 @@ function App() {
             setIsOpenCharts(false);
         });
         
-        initMap();
-        createSqlLiteDB();
+        (async () => {
+            try {
+                await initMap();
+                // Asegurar que SQLite esté listo antes de cualquier carga
+                await createSqlLiteDB();
+                const pending = sessionStorage.getItem('pdot:scenario:pendingImport');
+                const raw = sessionStorage.getItem('pdot:scenario:rawJson');
+                if (pending === '1' && raw) {
+                    toggleLoading(true);
+                    const scenario = await loadDataFromJson(raw);
+                    await filterRef.current?.changeScenarioByImport(scenario.LastRunBy, scenario.ScenId);
+                    // Limpiar storage tras uso
+                    sessionStorage.removeItem('pdot:scenario:rawJson');
+                }
+            } finally {
+                toggleLoading(false);
+                sessionStorage.removeItem('pdot:scenario:pendingImport');
+            }
+        })();
     }, []);
 
     const initMap = async () => {

@@ -2,7 +2,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews()
+                .AddSessionStateTempDataProvider()
                 .AddRazorRuntimeCompilation();
+builder.Services.AddSession(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
 var app = builder.Build();
 
@@ -16,6 +22,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
+app.UseSession();
 
 app.UseAuthorization();
 
@@ -25,6 +32,13 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
+
+// Si llegamos a Index con un JSON importado en TempData, emite un script inline para pasarlo a sessionStorage
+app.Use(async (context, next) =>
+{
+    await next();
+    // Nada que hacer aquí; la transferencia la hará la vista Index a través de un parcial si fuera necesario.
+});
 
 
 app.Run();
