@@ -13,6 +13,7 @@ import "@arcgis/map-components/components/arcgis-expand";
 esriConfig.portalUrl = "https://pennshare.maps.arcgis.com"; 
 
 import { Loading } from "@/components/Loading";
+import { STORAGE_KEYS } from "@/utils/storage";
 import { useApp } from "@/context/AppContext";
 import type { FilterRef } from "@/components/Filter";
 import { Projects } from "@/components/Projects";
@@ -34,6 +35,127 @@ function App() {
 
     const mapContainerRef = useRef<HTMLArcgisMapElement>(null);
     const filterRef = useRef<FilterRef>(null);
+    const highlightHandleRef = useRef<any>(null);
+
+    const formatCurrencyNoDecimals = (value: number): string => {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(value || 0);
+    };
+
+    const calcTotalCost = (attrs: any, edits: any): number => {
+        const numericVal = (fieldName: string, fallback: number) => {
+            const raw = edits?.[fieldName] ?? attrs?.[fieldName] ?? fallback;
+            return typeof raw === 'number' ? raw : parseFloat(raw) || 0;
+        };
+        const direct = numericVal('DirectCost', 0);
+        const design = numericVal('DesignCost', 0);
+        const row = numericVal('ROWCost', 0);
+        const util = numericVal('UtilCost', 0);
+        const other = numericVal('OtherCost', 0);
+        return direct + design + row + util + other;
+    };
+
+    const getAssetTypeLabel = (type: string): string => {
+        if (!type) return '';
+        if (type === 'P') return 'Pavement';
+        if (type === 'B') return 'Bridge';
+        if (type === 'C') return 'Combined';
+        return type;
+    };
+
+    const buildProjectPopupContent = (_projId: number | string, features: any[]): string => {
+        if (!features?.length) return '<div>No data</div>';
+        const f = features[0];
+        const projectId = f.attributes?.ProjectID || '';
+        const projectRoute = f.attributes?.Route || '';
+        const projectYear = f.attributes?.Year || '';
+        const projectCost = features.reduce((sum: number, g: any) => sum + calcTotalCost(g.attributes || {}, {}), 0);
+
+        const out: string[] = [];
+        out.push('<div style="font-family: sans-serif; padding:8px;">');
+        out.push(`<p><b>MPMS ID:</b> ${projectId}</p>`);
+        out.push(`<p><b>Route:</b> ${projectRoute}</p>`);
+        out.push(`<p><b>Year:</b> ${projectYear}</p>`);
+        out.push(`<p><b>Cost:</b> ${formatCurrencyNoDecimals(projectCost)}</p>`);
+        out.push('<h4 style="margin-top:20px;">Treatments</h4>');
+        out.push('<table style="border-collapse: collapse; width: 100%;">');
+        out.push('<thead><tr>');
+        out.push('<th style="border:1px solid #ccc; padding:6px;">Type</th>');
+        out.push('<th style="border:1px solid #ccc; padding:6px;">Section</th>');
+        out.push('<th style="border:1px solid #ccc; padding:6px;">Treatment</th>');
+        out.push('<th style="border:1px solid #ccc; padding:6px;">Total Cost</th>');
+        out.push('</tr></thead><tbody>');
+        features.forEach((g: any) => {
+            const attr = g.attributes || {};
+            const spelledType = getAssetTypeLabel(attr.TreatmentType || attr.AssetType || '');
+            const sectionStr = `${attr.SectionFrom ?? ''}-${attr.SectionTo ?? ''}`;
+            const totalCost = calcTotalCost(attr, {});
+            out.push('<tr>');
+            out.push(`<td style="border:1px solid #ccc; padding:4px;">${spelledType}</td>`);
+            out.push(`<td style="border:1px solid #ccc; padding:4px;">${sectionStr}</td>`);
+            out.push(`<td style="border:1px solid #ccc; padding:4px;">${attr.Treatment || ''}</td>`);
+            out.push(`<td style="border:1px solid #ccc; padding:4px;">${formatCurrencyNoDecimals(totalCost)}</td>`);
+            out.push('</tr>');
+        });
+        out.push('</tbody></table>');
+        out.push('</div>');
+        return out.join('');
+    };
+
+    const setupPopupSelection = (view: any, featureLayer: any) => {
+        if (!view) return;
+        view.popup.autoOpenEnabled = false;
+        view.on('click', async (event: any) => {
+            try {
+                if (highlightHandleRef.current) {
+                    highlightHandleRef.current.remove?.();
+                    highlightHandleRef.current = null;
+                }
+                const response = await view.hitTest(event);
+                if (!response?.results?.length) {
+                    view.popup.close();
+                    return;
+                }
+                const clickedFeature = response.results.find((r: any) => r.graphic?.layer === featureLayer)?.graphic;
+                if (!clickedFeature) {
+                    view.popup.close();
+                    return;
+                }
+                let projId = clickedFeature.attributes?.ProjId ||
+                              clickedFeature.attributes?.ProjectID ||
+                              clickedFeature.attributes?.SchemaId ||
+                              clickedFeature.attributes?.SystemID;
+                if (!projId) {
+                    view.popup.close();
+                    return;
+                }
+                const layerView = await view.whenLayerView(featureLayer);
+                const query = featureLayer.createQuery();
+                query.where = `ProjectID = ${projId}`;
+                query.outFields = ['*'];
+                query.returnGeometry = true;
+                const queryResult = await featureLayer.queryFeatures(query);
+                if (!queryResult?.features?.length) {
+                    view.popup.close();
+                    return;
+                }
+                highlightHandleRef.current = layerView.highlight(queryResult.features);
+                const popupContent = buildProjectPopupContent(projId, queryResult.features);
+                view.popup.open({
+                    title: 'Project Information',
+                    content: popupContent,
+                    location: event.mapPoint
+                });
+            } catch (err) {
+                console.error('Error handling segment click:', err);
+                view.popup.close();
+            }
+        });
+    };
 
     useEffect(() => { 
         let modalProjects = document.getElementById('projectInfoModal')
@@ -53,18 +175,18 @@ function App() {
                 await initMap();
                 // Asegurar que SQLite esté listo antes de cualquier carga
                 await createSqlLiteDB();
-                const pending = sessionStorage.getItem('pdot:scenario:pendingImport');
-                const raw = sessionStorage.getItem('pdot:scenario:rawJson');
+                const pending = sessionStorage.getItem(STORAGE_KEYS.scenarioPending);
+                const raw = sessionStorage.getItem(STORAGE_KEYS.scenarioRawJson);
                 if (pending === '1' && raw) {
                     toggleLoading(true);
                     const scenario = await loadDataFromJson(raw);
                     await filterRef.current?.changeScenarioByImport(scenario.LastRunBy, scenario.ScenId);
                     // Limpiar storage tras uso
-                    sessionStorage.removeItem('pdot:scenario:rawJson');
+                    sessionStorage.removeItem(STORAGE_KEYS.scenarioRawJson);
                 }
             } finally {
                 toggleLoading(false);
-                sessionStorage.removeItem('pdot:scenario:pendingImport');
+                sessionStorage.removeItem(STORAGE_KEYS.scenarioPending);
             }
         })();
     }, []);
@@ -149,6 +271,9 @@ function App() {
             
             featureLayer.renderer = getRenderer(useCostBasedSymbology) as any;
         });
+
+        // Setup custom popup behavior on map click (replicates Experience Builder widget)
+        setupPopupSelection(view, featureLayer);
     }
 
     const getRenderer = (useCostBasedSymbology: boolean) => {     

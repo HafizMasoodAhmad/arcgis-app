@@ -1,11 +1,10 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { useApp } from "@/context/AppContext";
 import { MultiSelect } from "@/components/MultiSelect";
-import Separator from "./Separator";
+import { STORAGE_KEYS } from "@/utils/storage";
+import { EVENTS } from "@/utils/events";
 
-interface FilterProps {
-    onReset?: () => void;
-}
+interface FilterProps {}
 
 export interface FilterRef {
     resetScenario: () => void;
@@ -20,7 +19,7 @@ interface Options {
     route: { value: string, label: string }[];
 }
 
-export const Filter = forwardRef<FilterRef, FilterProps>(({ onReset }, ref ) => { 
+export const Filter = forwardRef<FilterRef, FilterProps>(({ }, ref ) => { 
     const { toggleLoading, toggleLoadingScenario, changeFilterValues, getFeatureLayer, getSelectedScenario, getSelectedUser, changeSelectedScenario, changeSelectedUser, getTreatmentsFromDB, getUniqueUsersFromDB, getScenariosFromDB, getProjectsFromDB, loadTreatments } = useApp();
     
     const formRef = useRef<HTMLFormElement>(null);
@@ -39,10 +38,7 @@ export const Filter = forwardRef<FilterRef, FilterProps>(({ onReset }, ref ) => 
     });
     
     useEffect(() => {
-        formRef.current?.addEventListener('reset', () => {            
-            resetFilter(true);
-            onReset && onReset();
-        });
+        // No reset handler in filters area
     }, [])
 
     useImperativeHandle(ref, () => ({
@@ -152,7 +148,7 @@ export const Filter = forwardRef<FilterRef, FilterProps>(({ onReset }, ref ) => 
             featureLayer.definitionExpression = null as any;
             featureLayer.refresh?.();
         } catch {}
-        window.dispatchEvent(new CustomEvent('filter-updated', { detail: {} }));
+        window.dispatchEvent(new CustomEvent(EVENTS.filterUpdated, { detail: {} }));
     }
 
     const fillSelectOptions = (select: HTMLSelectElement | any, emptyText: string, options: { value: string, label: string }[]) => {
@@ -225,7 +221,7 @@ export const Filter = forwardRef<FilterRef, FilterProps>(({ onReset }, ref ) => 
 
         // Restaurar filtros persistidos para este escenario (si existen)
         try {
-            const savedRaw = localStorage.getItem(`pdot:filters:${scenarioId}`);
+            const savedRaw = localStorage.getItem(`${STORAGE_KEYS.filtersPrefix}${scenarioId}`);
             if (savedRaw) {
                 const saved = JSON.parse(savedRaw) as {route?: string[]; year?: string[]; asset_type?: string[]; treatment?: string[]};
                 const routeSel = Array.isArray(saved.route) ? saved.route : [];
@@ -247,8 +243,8 @@ export const Filter = forwardRef<FilterRef, FilterProps>(({ onReset }, ref ) => 
                 changeFilterValues({ route: routeSel, year: yearSel, assetType: assetSel, treatment: treatSel });
 
                 const useCostBasedSymbology = whereClauses.length > 0;
-                window.dispatchEvent(new CustomEvent('symbologyUpdate', { detail: { useCostBasedSymbology } }));
-                window.dispatchEvent(new CustomEvent('filter-updated', { detail: {} }));
+                window.dispatchEvent(new CustomEvent(EVENTS.symbologyUpdate, { detail: { useCostBasedSymbology } }));
+                window.dispatchEvent(new CustomEvent(EVENTS.filterUpdated, { detail: {} }));
             }
         } catch {}
     }
@@ -315,7 +311,7 @@ export const Filter = forwardRef<FilterRef, FilterProps>(({ onReset }, ref ) => 
         });
         try {
             const scen = getSelectedScenario();
-            localStorage.setItem(`pdot:filters:${scen}`, JSON.stringify({
+            localStorage.setItem(`${STORAGE_KEYS.filtersPrefix}${scen}`, JSON.stringify({
                 route: selectedRoutes,
                 year: selectedProjectYears,
                 asset_type: selectedAssetType,
@@ -332,7 +328,7 @@ export const Filter = forwardRef<FilterRef, FilterProps>(({ onReset }, ref ) => 
 
         const useCostBasedSymbology = whereClauses.length > 0;
 
-        window.dispatchEvent(new CustomEvent('symbologyUpdate', {
+        window.dispatchEvent(new CustomEvent(EVENTS.symbologyUpdate, {
             detail: { useCostBasedSymbology }
         }));
 
@@ -356,7 +352,7 @@ export const Filter = forwardRef<FilterRef, FilterProps>(({ onReset }, ref ) => 
         console.log("🔍 Filtered Project IDs:", filteredProjIds);
         console.log("🔍 Filtered Treatment IDs:", filteredTreatIds);
         
-        window.dispatchEvent(new CustomEvent('filter-updated', {
+        window.dispatchEvent(new CustomEvent(EVENTS.filterUpdated, {
             detail: { filteredProjIds, filteredTreatIds }
         }));
     }
@@ -394,18 +390,6 @@ export const Filter = forwardRef<FilterRef, FilterProps>(({ onReset }, ref ) => 
                 <MultiSelect className="w-100" options={options.asset_type} selectedValues={selectedValues.asset_type} onChange={onChange} name="asset_type" id="asset_type" placeholder="Select Asset Type"/>
                 <MultiSelect className="w-100" options={options.treatment} selectedValues={selectedValues.treatment} onChange={onChange} name="treatment" id="treatment" placeholder="Select Treatment"/>
                 <MultiSelect className="w-100" options={options.route} selectedValues={selectedValues.route} onChange={onChange} name="route" id="route" placeholder="Select Route"/>
-
-
-                <button
-                    type="reset"
-                    className="btn btn-primary"
-                    onClick={() => {
-                        resetFilter(true);
-                    }}
-                >
-                    Clear all filters
-                    <i className="fa-solid fa-broom pt-1 ms-2"></i>
-                </button>
             </form>
         </div>
     )

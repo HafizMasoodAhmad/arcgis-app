@@ -640,6 +640,11 @@ const useApp = () => {
 const Loading = () => {
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { id: "loading-overlay", className: "loading-overlay w-100 h-100 position-absolute", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "loading-spinner" }) });
 };
+const STORAGE_KEYS = {
+  filtersPrefix: "pdot:filters:",
+  scenarioRawJson: "pdot:scenario:rawJson",
+  scenarioPending: "pdot:scenario:pendingImport"
+};
 const Projects = () => {
   const { getProjectsFiltered, getTreatmentsPerProjectFromDB, getFilterValues, getSelectedScenario } = useApp();
   const [allProjects, setAllProjects] = reactExports.useState([]);
@@ -1404,10 +1409,11 @@ const MultiSelect = ({
     isOpen && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "multi-select-overlay", onClick: closeDropdown })
   ] });
 };
-const Separator = ({ className }) => {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `w-100 ${className ? className : ""}`, style: { borderBottom: "1px solid var(--primary-400)" } });
+const EVENTS = {
+  filterUpdated: "filter-updated",
+  symbologyUpdate: "symbologyUpdate"
 };
-const Filter = reactExports.forwardRef(({ onReset }, ref) => {
+const Filter = reactExports.forwardRef(({}, ref) => {
   const { toggleLoading, toggleLoadingScenario, changeFilterValues, getFeatureLayer, getSelectedScenario, getSelectedUser, changeSelectedScenario, changeSelectedUser, getTreatmentsFromDB, getUniqueUsersFromDB, getScenariosFromDB, getProjectsFromDB, loadTreatments } = useApp();
   const formRef = reactExports.useRef(null);
   const userRef = reactExports.useRef(null);
@@ -1425,11 +1431,6 @@ const Filter = reactExports.forwardRef(({ onReset }, ref) => {
     route: []
   });
   reactExports.useEffect(() => {
-    var _a;
-    (_a = formRef.current) == null ? void 0 : _a.addEventListener("reset", () => {
-      resetFilter(true);
-      onReset && onReset();
-    });
   }, []);
   reactExports.useImperativeHandle(ref, () => ({
     resetScenario,
@@ -1510,7 +1511,7 @@ const Filter = reactExports.forwardRef(({ onReset }, ref) => {
       (_a = featureLayer.refresh) == null ? void 0 : _a.call(featureLayer);
     } catch {
     }
-    window.dispatchEvent(new CustomEvent("filter-updated", { detail: {} }));
+    window.dispatchEvent(new CustomEvent(EVENTS.filterUpdated, { detail: {} }));
   };
   const fillSelectOptions = (select, emptyText, options2) => {
     if (!select) return;
@@ -1562,7 +1563,7 @@ const Filter = reactExports.forwardRef(({ onReset }, ref) => {
     toggleLoadingScenario(false);
     window.dispatchEvent(new CustomEvent("filter-updated", { detail: {} }));
     try {
-      const savedRaw = localStorage.getItem(`pdot:filters:${scenarioId}`);
+      const savedRaw = localStorage.getItem(`${STORAGE_KEYS.filtersPrefix}${scenarioId}`);
       if (savedRaw) {
         const saved = JSON.parse(savedRaw);
         const routeSel = Array.isArray(saved.route) ? saved.route : [];
@@ -1580,8 +1581,8 @@ const Filter = reactExports.forwardRef(({ onReset }, ref) => {
         (_a = featureLayer.refresh) == null ? void 0 : _a.call(featureLayer);
         changeFilterValues({ route: routeSel, year: yearSel, assetType: assetSel, treatment: treatSel });
         const useCostBasedSymbology = whereClauses.length > 0;
-        window.dispatchEvent(new CustomEvent("symbologyUpdate", { detail: { useCostBasedSymbology } }));
-        window.dispatchEvent(new CustomEvent("filter-updated", { detail: {} }));
+        window.dispatchEvent(new CustomEvent(EVENTS.symbologyUpdate, { detail: { useCostBasedSymbology } }));
+        window.dispatchEvent(new CustomEvent(EVENTS.filterUpdated, { detail: {} }));
       }
     } catch {
     }
@@ -1632,7 +1633,7 @@ const Filter = reactExports.forwardRef(({ onReset }, ref) => {
     });
     try {
       const scen = getSelectedScenario();
-      localStorage.setItem(`pdot:filters:${scen}`, JSON.stringify({
+      localStorage.setItem(`${STORAGE_KEYS.filtersPrefix}${scen}`, JSON.stringify({
         route: selectedRoutes,
         year: selectedProjectYears,
         asset_type: selectedAssetType,
@@ -1646,7 +1647,7 @@ const Filter = reactExports.forwardRef(({ onReset }, ref) => {
     console.log("📌 Applied definitionExpression:", definition);
     (_a = featureLayer.refresh) == null ? void 0 : _a.call(featureLayer);
     const useCostBasedSymbology = whereClauses.length > 0;
-    window.dispatchEvent(new CustomEvent("symbologyUpdate", {
+    window.dispatchEvent(new CustomEvent(EVENTS.symbologyUpdate, {
       detail: { useCostBasedSymbology }
     }));
     const selectedScenario = getSelectedScenario();
@@ -1663,7 +1664,7 @@ const Filter = reactExports.forwardRef(({ onReset }, ref) => {
     console.log("🔍 Matched treatments:", matched.length);
     console.log("🔍 Filtered Project IDs:", filteredProjIds);
     console.log("🔍 Filtered Treatment IDs:", filteredTreatIds);
-    window.dispatchEvent(new CustomEvent("filter-updated", {
+    window.dispatchEvent(new CustomEvent(EVENTS.filterUpdated, {
       detail: { filteredProjIds, filteredTreatIds }
     }));
   };
@@ -1705,24 +1706,13 @@ const Filter = reactExports.forwardRef(({ onReset }, ref) => {
       /* @__PURE__ */ jsxRuntimeExports.jsx(MultiSelect, { className: "w-100", options: options.year, selectedValues: selectedValues.year, onChange, name: "year", id: "year", placeholder: "Select Year" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(MultiSelect, { className: "w-100", options: options.asset_type, selectedValues: selectedValues.asset_type, onChange, name: "asset_type", id: "asset_type", placeholder: "Select Asset Type" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(MultiSelect, { className: "w-100", options: options.treatment, selectedValues: selectedValues.treatment, onChange, name: "treatment", id: "treatment", placeholder: "Select Treatment" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(MultiSelect, { className: "w-100", options: options.route, selectedValues: selectedValues.route, onChange, name: "route", id: "route", placeholder: "Select Route" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(
-        "button",
-        {
-          type: "reset",
-          className: "btn btn-primary",
-          onClick: () => {
-            resetFilter(true);
-          },
-          children: [
-            "Clear all filters",
-            /* @__PURE__ */ jsxRuntimeExports.jsx("i", { className: "fa-solid fa-broom pt-1 ms-2" })
-          ]
-        }
-      )
+      /* @__PURE__ */ jsxRuntimeExports.jsx(MultiSelect, { className: "w-100", options: options.route, selectedValues: selectedValues.route, onChange, name: "route", id: "route", placeholder: "Select Route" })
     ] })
   ] });
 });
+const Separator = ({ className }) => {
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `w-100 ${className ? className : ""}`, style: { borderBottom: "1px solid var(--primary-400)" } });
+};
 const SidebarPopup = ({ title, open, children, onClose }) => {
   reactExports.useEffect(() => {
     console.log("open", open);
@@ -1817,14 +1807,16 @@ function FilterSidebar(props) {
             title: "Resetear filtros del escenario",
             onClick: () => {
               var _a, _b;
+              const ok = window.confirm("Esto limpiará todos los filtros, incluyendo User y Scenario. ¿Desea continuar?");
+              if (!ok) return;
               try {
-                localStorage.removeItem(`pdot:filters:${scenario}`);
+                localStorage.removeItem(`${STORAGE_KEYS.filtersPrefix}${scenario}`);
                 (_b = (_a = filterRef.current) == null ? void 0 : _a.hardResetAllFilters) == null ? void 0 : _b.call(_a);
               } catch {
               }
             },
             children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-white", children: "Reset filtros (escenario)" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-white", children: "Clear all filters" }),
               /* @__PURE__ */ jsxRuntimeExports.jsx("i", { className: "fa-solid fa-rotate-left pt-1" })
             ]
           }
@@ -1909,6 +1901,123 @@ function App() {
   const [isOpenRightPanel, setIsOpenRightPanel] = reactExports.useState(false);
   const mapContainerRef = reactExports.useRef(null);
   const filterRef = reactExports.useRef(null);
+  const highlightHandleRef = reactExports.useRef(null);
+  const formatCurrencyNoDecimals = (value) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(value || 0);
+  };
+  const calcTotalCost = (attrs, edits) => {
+    const numericVal = (fieldName, fallback) => {
+      const raw = (edits == null ? void 0 : edits[fieldName]) ?? (attrs == null ? void 0 : attrs[fieldName]) ?? fallback;
+      return typeof raw === "number" ? raw : parseFloat(raw) || 0;
+    };
+    const direct = numericVal("DirectCost", 0);
+    const design = numericVal("DesignCost", 0);
+    const row = numericVal("ROWCost", 0);
+    const util = numericVal("UtilCost", 0);
+    const other = numericVal("OtherCost", 0);
+    return direct + design + row + util + other;
+  };
+  const getAssetTypeLabel = (type) => {
+    if (!type) return "";
+    if (type === "P") return "Pavement";
+    if (type === "B") return "Bridge";
+    if (type === "C") return "Combined";
+    return type;
+  };
+  const buildProjectPopupContent = (_projId, features) => {
+    var _a, _b, _c;
+    if (!(features == null ? void 0 : features.length)) return "<div>No data</div>";
+    const f2 = features[0];
+    const projectId = ((_a = f2.attributes) == null ? void 0 : _a.ProjectID) || "";
+    const projectRoute = ((_b = f2.attributes) == null ? void 0 : _b.Route) || "";
+    const projectYear = ((_c = f2.attributes) == null ? void 0 : _c.Year) || "";
+    const projectCost = features.reduce((sum, g) => sum + calcTotalCost(g.attributes || {}, {}), 0);
+    const out = [];
+    out.push('<div style="font-family: sans-serif; padding:8px;">');
+    out.push(`<p><b>MPMS ID:</b> ${projectId}</p>`);
+    out.push(`<p><b>Route:</b> ${projectRoute}</p>`);
+    out.push(`<p><b>Year:</b> ${projectYear}</p>`);
+    out.push(`<p><b>Cost:</b> ${formatCurrencyNoDecimals(projectCost)}</p>`);
+    out.push('<h4 style="margin-top:20px;">Treatments</h4>');
+    out.push('<table style="border-collapse: collapse; width: 100%;">');
+    out.push("<thead><tr>");
+    out.push('<th style="border:1px solid #ccc; padding:6px;">Type</th>');
+    out.push('<th style="border:1px solid #ccc; padding:6px;">Section</th>');
+    out.push('<th style="border:1px solid #ccc; padding:6px;">Treatment</th>');
+    out.push('<th style="border:1px solid #ccc; padding:6px;">Total Cost</th>');
+    out.push("</tr></thead><tbody>");
+    features.forEach((g) => {
+      const attr = g.attributes || {};
+      const spelledType = getAssetTypeLabel(attr.TreatmentType || attr.AssetType || "");
+      const sectionStr = `${attr.SectionFrom ?? ""}-${attr.SectionTo ?? ""}`;
+      const totalCost = calcTotalCost(attr, {});
+      out.push("<tr>");
+      out.push(`<td style="border:1px solid #ccc; padding:4px;">${spelledType}</td>`);
+      out.push(`<td style="border:1px solid #ccc; padding:4px;">${sectionStr}</td>`);
+      out.push(`<td style="border:1px solid #ccc; padding:4px;">${attr.Treatment || ""}</td>`);
+      out.push(`<td style="border:1px solid #ccc; padding:4px;">${formatCurrencyNoDecimals(totalCost)}</td>`);
+      out.push("</tr>");
+    });
+    out.push("</tbody></table>");
+    out.push("</div>");
+    return out.join("");
+  };
+  const setupPopupSelection = (view, featureLayer) => {
+    if (!view) return;
+    view.popup.autoOpenEnabled = false;
+    view.on("click", async (event) => {
+      var _a, _b, _c, _d, _e, _f, _g, _h, _i;
+      try {
+        if (highlightHandleRef.current) {
+          (_b = (_a = highlightHandleRef.current).remove) == null ? void 0 : _b.call(_a);
+          highlightHandleRef.current = null;
+        }
+        const response = await view.hitTest(event);
+        if (!((_c = response == null ? void 0 : response.results) == null ? void 0 : _c.length)) {
+          view.popup.close();
+          return;
+        }
+        const clickedFeature = (_d = response.results.find((r) => {
+          var _a2;
+          return ((_a2 = r.graphic) == null ? void 0 : _a2.layer) === featureLayer;
+        })) == null ? void 0 : _d.graphic;
+        if (!clickedFeature) {
+          view.popup.close();
+          return;
+        }
+        let projId = ((_e = clickedFeature.attributes) == null ? void 0 : _e.ProjId) || ((_f = clickedFeature.attributes) == null ? void 0 : _f.ProjectID) || ((_g = clickedFeature.attributes) == null ? void 0 : _g.SchemaId) || ((_h = clickedFeature.attributes) == null ? void 0 : _h.SystemID);
+        if (!projId) {
+          view.popup.close();
+          return;
+        }
+        const layerView = await view.whenLayerView(featureLayer);
+        const query = featureLayer.createQuery();
+        query.where = `ProjectID = ${projId}`;
+        query.outFields = ["*"];
+        query.returnGeometry = true;
+        const queryResult = await featureLayer.queryFeatures(query);
+        if (!((_i = queryResult == null ? void 0 : queryResult.features) == null ? void 0 : _i.length)) {
+          view.popup.close();
+          return;
+        }
+        highlightHandleRef.current = layerView.highlight(queryResult.features);
+        const popupContent = buildProjectPopupContent(projId, queryResult.features);
+        view.popup.open({
+          title: "Project Information",
+          content: popupContent,
+          location: event.mapPoint
+        });
+      } catch (err) {
+        console.error("Error handling segment click:", err);
+        view.popup.close();
+      }
+    });
+  };
   reactExports.useEffect(() => {
     let modalProjects = document.getElementById("projectInfoModal");
     modalProjects == null ? void 0 : modalProjects.addEventListener("hidden.bs.modal", () => {
@@ -1923,17 +2032,17 @@ function App() {
       try {
         await initMap();
         await createSqlLiteDB();
-        const pending = sessionStorage.getItem("pdot:scenario:pendingImport");
-        const raw = sessionStorage.getItem("pdot:scenario:rawJson");
+        const pending = sessionStorage.getItem(STORAGE_KEYS.scenarioPending);
+        const raw = sessionStorage.getItem(STORAGE_KEYS.scenarioRawJson);
         if (pending === "1" && raw) {
           toggleLoading(true);
           const scenario = await loadDataFromJson(raw);
           await ((_a = filterRef.current) == null ? void 0 : _a.changeScenarioByImport(scenario.LastRunBy, scenario.ScenId));
-          sessionStorage.removeItem("pdot:scenario:rawJson");
+          sessionStorage.removeItem(STORAGE_KEYS.scenarioRawJson);
         }
       } finally {
         toggleLoading(false);
-        sessionStorage.removeItem("pdot:scenario:pendingImport");
+        sessionStorage.removeItem(STORAGE_KEYS.scenarioPending);
       }
     })();
   }, []);
@@ -1999,6 +2108,7 @@ function App() {
       const { useCostBasedSymbology } = event.detail;
       featureLayer.renderer = getRenderer(useCostBasedSymbology);
     });
+    setupPopupSelection(view, featureLayer);
   };
   const getRenderer = (useCostBasedSymbology) => {
     if (useCostBasedSymbology) {

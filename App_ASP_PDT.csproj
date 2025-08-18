@@ -17,17 +17,17 @@
     <None Include="wwwroot\js\arcgis\**\*" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
   </ItemGroup>
 
-  <Target Name="BuildClientBeforeStaticAssets" BeforeTargets="ComputeStaticWebAssets">
+  <Target Name="BuildClientBeforeStaticAssets" BeforeTargets="ComputeStaticWebAssets" Condition="'$(DesignTimeBuild)'!='true'">
     <Exec WorkingDirectory="front-end/arcgis-app" Command="npm install" />
     <Exec WorkingDirectory="front-end/arcgis-app" Command="npm run build" />
   </Target>
 
-  <Target Name="BuildClientOnBuild" BeforeTargets="Build">
+  <Target Name="BuildClientOnBuild" BeforeTargets="Build" Condition="'$(DesignTimeBuild)'!='true'">
     <Exec WorkingDirectory="front-end/arcgis-app" Command="npm install" />
     <Exec WorkingDirectory="front-end/arcgis-app" Command="npm run build" />
   </Target>
 
-  <Target Name="BuildClientOnPublish" BeforeTargets="Publish">
+  <Target Name="BuildClientOnPublish" BeforeTargets="Publish" Condition="'$(DesignTimeBuild)'!='true'">
     <Exec WorkingDirectory="front-end/arcgis-app" Command="npm install" />
     <Exec WorkingDirectory="front-end/arcgis-app" Command="npm run build" />
   </Target>

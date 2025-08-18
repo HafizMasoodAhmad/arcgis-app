@@ -17,16 +17,31 @@ This is a web project developed with ASP.NET Core MVC for the Pennsylvania Depar
 
 ```
 App_ASP_PDT/
-├── Controllers/          # MVC Controllers
-├── Models/              # Data models
-├── Views/               # Razor views
-├── wwwroot/             # Static files
-│   ├── css/            # Stylesheets
-│   ├── js/             # JavaScript scripts
-│   │   └── arcgis/     # ArcGIS specific scripts
-│   └── lib/            # Third-party libraries
-├── Properties/          # Project configuration
-└── Program.cs          # Application entry point
+├── Controllers/                  # MVC Controllers (e.g., HomeController)
+├── Models/                       # ViewModels and DTOs (e.g., JsonImportViewModel)
+├── Services/                     # Application services (e.g., ScenarioValidationService)
+├── TagHelpers/                   # Custom Razor TagHelpers (ReactMountTagHelper)
+├── ViewComponents/               # Optional React mount ViewComponent (ReactAppViewComponent)
+├── Views/                        # Razor views and layouts
+│   ├── Home/
+│   │   ├── Index.cshtml          # Hosts React app via <react-mount>
+│   │   ├── Map.cshtml            # Also mounts React
+│   │   ├── TestMap.cshtml        # Also mounts React
+│   │   └── JsonImport.cshtml     # JSON upload/validation page
+│   └── Shared/
+│       └── _Layout.cshtml        # Loads built CSS, nav links
+├── wwwroot/                      # Static files served by ASP.NET Core
+│   ├── css/
+│   ├── js/
+│   │   └── filter/               # Vite build output (bundle_filter.js, vendor-*.js, main.css)
+│   └── lib/                      # Third-party libraries (Bootstrap, etc.)
+├── front-end/arcgis-app/         # React + TypeScript + Vite source
+│   ├── src/                      # App.tsx, context, components, utils, types
+│   ├── vite.config.ts            # Vite build config (base=/js/filter/, outDir=wwwroot/js/filter)
+│   └── package.json              # Frontend deps (React 19, @arcgis/core, sql.js)
+├── App_ASP_PDT.csproj            # MSBuild targets to build frontend before static assets
+├── Program.cs                    # ASP.NET Core pipeline configuration
+└── Properties/
 ```
 
 ## Additional Libraries
@@ -43,11 +58,12 @@ App_ASP_PDT/
 - **jQuery Validation Unobtrusive** - Non-intrusive validation
 
 ### Frontend (React + Vite)
-- `front-end/arcgis-app/` contiene la app React/TypeScript. Vite construye a `wwwroot/js/filter/`
-- Carga en Razor mediante el parcial `Views/Shared/_ReactFilterScripts.cshtml`.
+- The React/TypeScript app lives under `front-end/arcgis-app/` and is built to `wwwroot/js/filter/`.
+- Razor loads the built bundle via a custom TagHelper: `<react-mount mount-id="react-filter"></react-mount>`.
+- An alternative ViewComponent exists (`ReactAppViewComponent`) for teams preferring that approach.
 
 ### Legacy
-- Los scripts en `wwwroot/js/arcgis/**` están deshabilitados en build/publish para evitar confusiones.
+- Legacy scripts under `wwwroot/js/arcgis/**` are excluded from build and publish to avoid confusion.
 
 ## Prerequisites
 
@@ -120,28 +136,49 @@ The project uses the following environment variables:
 - `Privacy()` - Privacy page
 - `Error()` - Error handling
 
-## Razor ↔ React integration and Import flow
+## Native Razor ↔ React integration (no dev server at runtime)
 
-### Mounting React in Razor
-- `Views/Home/Index.cshtml` renderiza `<div id="react-filter">` y en `@section Scripts` incluye:
-  - `_TempDataToReact`: transfiere JSON desde `TempData` a `sessionStorage` si viene de importación.
-  - `_ReactFilterScripts`: carga `~/js/filter/bundle_filter.js` (sin Vite dev server).
+This application runs entirely as a native ASP.NET Core MVC app. React is built by Vite during the .NET build and the resulting static assets are served by the Static Files middleware.
 
-### Import flow (Razor → React)
-1. Página `Home/JsonImport` (Razor) sube un archivo `.json`.
-2. `HomeController.JsonImport(POST)` valida esquema (Scenario/Projects/Treatments) y tipos básicos.
-3. Si es válido, guarda el JSON crudo en `TempData["ScenarioRawJson"]` y redirige a `Home/Index`.
-4. `_TempDataToReact` escribe en `sessionStorage`:
-   - `pdot:scenario:rawJson` y `pdot:scenario:pendingImport = '1'`.
-5. En `App.tsx` (React), al montar:
-   - Espera `initMap()` y `createSqlLiteDB()`.
-   - Si detecta `pendingImport`, llama `loadDataFromJson(raw)` para insertar en SQLite.
-   - Llama `filterRef.changeScenarioByImport(userId, scenId)` para poblar selects y cargar la capa.
+### How the build pipeline works
+- `App_ASP_PDT.csproj` defines a target `BuildClientBeforeStaticAssets` that runs before `ComputeStaticWebAssets;Build;Publish`:
+  - `npm install` and `npm run build` are executed in `front-end/arcgis-app/`.
+  - This ensures `wwwroot/js/filter/` contains the bundles when ASP.NET computes the Static Web Assets manifest.
+- `vite.config.ts` sets:
+  - `base: '/js/filter/'` so dynamic imports and assets resolve under the `wwwroot/js/filter/` path.
+  - `outDir: '../../wwwroot/js/filter'` to write bundles where ASP.NET can serve them.
+- `Program.cs` configures Static Files and adds long-lived cache headers for these bundles and response compression.
 
-### Filters persistence per scenario
-- `Filter.tsx` guarda selecciones por escenario en `localStorage` (`pdot:filters:<ScenarioId>`)
-- Al cambiar de escenario, restaura filtros, aplica `definitionExpression` y emite eventos para refrescar Projects/Charts.
-- Hay un botón "Reset filtros (escenario)" en el sidebar para limpiar la persistencia del escenario actual.
+### How Razor mounts React
+- The `ReactMountTagHelper` renders the mounting `<div>` and includes the `<script type="module" src="/js/filter/bundle_filter.js">`.
+- It also bridges server state to the browser by copying `TempData` values into `sessionStorage` so the React app can read them on first load.
+- Views such as `Views/Home/Index.cshtml` mount React with:
+  - `<react-mount mount-id="react-filter"></react-mount>`
+- Alternatively, a ViewComponent is available: `@await Component.InvokeAsync("ReactApp", new { mountId = "react-filter" })`.
+
+### JSON import flow (Razor → React → SQLite → Map)
+1. The `JsonImport` Razor page posts a `.json` file to `HomeController.JsonImport`.
+2. The controller validates the payload using `IScenarioValidationService` and, if valid, stores the raw JSON in `TempData["ScenarioRawJson"]` and redirects to `Home/Index`.
+3. On `Index`, the `ReactMountTagHelper` writes into `sessionStorage`:
+   - `pdot:scenario:rawJson`
+   - `pdot:scenario:pendingImport = '1'`
+4. `App.tsx` waits for both `initMap()` and `createSqlLiteDB()` to complete, then checks `sessionStorage` keys:
+   - If a pending import is found, it calls `loadDataFromJson(raw)` from the application context.
+   - The context parses the JSON and inserts `Scenario`, `Projects`, and `Treatments` into an in-memory SQLite database (sql.js).
+   - It then calls `filterRef.changeScenarioByImport(userId, scenId)` to populate dropdowns and load the ArcGIS FeatureLayer graphics for the scenario.
+5. The import flags are cleared from `sessionStorage` once processed.
+
+### Filter persistence and cross-widget synchronization
+- Filters are persisted per scenario in `localStorage` under `pdot:filters:<ScenarioId>`.
+- When a scenario is selected, saved filters are restored and applied to the layer via `definitionExpression`.
+- Custom DOM events (`filter-updated`, `symbologyUpdate`) notify dependent components like Projects and Charts to recompute/reload based on the current filters.
+- A single Clear all filters action is exposed in the sidebar to reset UI selections, clear the definition expression, and remove the persisted filters for the current scenario.
+
+### Quick verification checklist (after changes)
+- Build runs NPM before Static Web Assets; `wwwroot/js/filter/` contains `bundle_filter.js`, `main.css`, `assets/vendor-*.js`.
+- `Home/JsonImport` accepts `.json`, rejects files >10MB, shows validation errors.
+- After import, Home loads and dropdowns (User/Scenario/Year/AssetType/Treatment/Route) populate.
+- Filters update map, Projects, and Charts; persistence by scenario works; Reset clears all (including User/Scenario).
 
 ## Useful Commands
 

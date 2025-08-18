@@ -4,6 +4,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews()
                 .AddSessionStateTempDataProvider()
                 .AddRazorRuntimeCompilation();
+builder.Services.AddScoped<App_ASP_PDT.Services.IScenarioValidationService, App_ASP_PDT.Services.ScenarioValidationService>();
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+});
 builder.Services.AddSession(options =>
 {
     options.Cookie.HttpOnly = true;
@@ -21,6 +26,30 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseResponseCompression();
+// Security headers (safe defaults, no CSP to avoid breaking existing integrations)
+app.Use(async (ctx, next) =>
+{
+    var headers = ctx.Response.Headers;
+    headers["X-Content-Type-Options"] = "nosniff";
+    headers["X-Frame-Options"] = "DENY";
+    headers["Referrer-Policy"] = "no-referrer";
+    headers["X-XSS-Protection"] = "0"; // modern browsers ignore this; kept explicit
+    await next();
+});
+
+// Long cache for built frontend assets
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        var path = ctx.File.PhysicalPath?.Replace('\\','/') ?? string.Empty;
+        if (path.Contains("/wwwroot/js/filter/"))
+        {
+            ctx.Context.Response.Headers["Cache-Control"] = "public, max-age=31536000, immutable";
+        }
+    }
+});
 app.UseRouting();
 app.UseSession();
 

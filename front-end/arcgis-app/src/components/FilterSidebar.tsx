@@ -3,6 +3,7 @@ import { Filter, type FilterRef } from '@/components/Filter';
 import Separator from '@/components/Separator';
 import SidebarPopup from '@/components/SidebarPopup';
 import { useApp } from "@/context/AppContext";
+import { STORAGE_KEYS } from '@/utils/storage';
 
 import "@arcgis/map-components/components/arcgis-legend";
 import "@arcgis/map-components/components/arcgis-basemap-gallery";
@@ -70,14 +71,16 @@ function FilterSidebar(props: FilterSidebarProps) {
                                 style={{ backgroundColor: 'var(--primary-700)', color: 'var(--primary-100)' }}
                                 title="Resetear filtros del escenario"
                                 onClick={() => {
+                                    const ok = window.confirm('Esto limpiará todos los filtros, incluyendo User y Scenario. ¿Desea continuar?');
+                                    if (!ok) return;
                                     try {
-                                        localStorage.removeItem(`pdot:filters:${scenario}`);
+                                        localStorage.removeItem(`${STORAGE_KEYS.filtersPrefix}${scenario}`);
                                         // Limpiar también UI y definitionExpression
                                         (filterRef.current as any)?.hardResetAllFilters?.();
                                     } catch {}
                                 }}
                             >
-                                <span className="text-white">Reset filtros (escenario)</span>
+                                <span className="text-white">Clear all filters</span>
                                 <i className="fa-solid fa-rotate-left pt-1"></i>
                             </button>
                         </section>
