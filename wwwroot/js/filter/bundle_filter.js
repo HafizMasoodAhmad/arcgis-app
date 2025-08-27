@@ -1,4 +1,4 @@
-import { r as reactExports, j as jsxRuntimeExports, s, y, T, d as d$1, i as initSqlJs, u as use, a as init, b as install, c as install$1, e as install$2, f as install$3, g as install$4, h as install$5, k as s$1, C as C$1, l as f, X as Xe, m as a, n as clientExports } from "./assets/vendor-UJE5oZOo.js";
+import { r as reactExports, j as jsxRuntimeExports, s, y, T, d as d$1, i as initSqlJs, u as use, a as init, b as install, c as install$1, e as install$2, f as install$3, g as install$4, h as install$5, k as install$6, l as install$7, m as s$1, C as C$1, n as f, X as Xe, _ as _$1, o as a, p as clientExports } from "./assets/vendor-CrINrUnp.js";
 const AuthContext = reactExports.createContext(void 0);
 const AppProvider = ({ children }) => {
   const [isLoading, setIsLoading] = reactExports.useState(false);
@@ -1110,117 +1110,209 @@ const ButtonWidget = ({ title, className, disabled, onClick, children, selected 
     }
   );
 };
-use(
-  [install, install$1, install$2, install$3, install$4, install$5]
-);
-const Charts = () => {
-  const { getTreatmentsFiltered, getFilterValues, getSelectedScenario } = useApp();
-  const totalCostRef = reactExports.useRef(null);
-  const treatmentBreakdownRef = reactExports.useRef(null);
-  const chartsRef = reactExports.useRef(null);
-  const totalCostGraph = reactExports.useRef(null);
-  const treatmentBreakdownGraph = reactExports.useRef(null);
-  const computeAndRender = () => {
-    let filterValues = getFilterValues();
-    let scenarioId = getSelectedScenario();
-    const treatments = getTreatmentsFiltered(scenarioId, filterValues);
-    let totalCostByYear = {};
-    let treatmentBreakdownByYear = {};
-    treatments.forEach((treatment) => {
-      if (!totalCostByYear[treatment.Year]) {
-        totalCostByYear[treatment.Year] = 0;
+use([
+  install,
+  install$1,
+  install$2,
+  install$3,
+  install$4,
+  install$5,
+  install$6,
+  install$7
+]);
+const ChartComponent = ({
+  title,
+  data,
+  type,
+  height = "100%",
+  width = "100%"
+}) => {
+  const chartRef = reactExports.useRef(null);
+  const chartInstance = reactExports.useRef(null);
+  const createChartOptions = () => {
+    const keys = Object.keys(data);
+    const values = Object.values(data);
+    const baseOptions = {
+      backgroundColor: "transparent",
+      title: {
+        text: title,
+        textStyle: {
+          color: "#ffffff",
+          fontSize: 14,
+          fontWeight: "normal"
+        }
+      },
+      tooltip: {
+        trigger: "axis",
+        textStyle: {
+          color: "#ffffff"
+        }
+      },
+      legend: {
+        show: false,
+        textStyle: {
+          color: "#ffffff"
+        }
+      },
+      grid: {
+        left: "3%",
+        right: "4%",
+        bottom: "3%",
+        containLabel: true
       }
-      totalCostByYear[treatment.Year] += treatment.Cost;
-      if (!treatmentBreakdownByYear[treatment.TreatType]) {
-        treatmentBreakdownByYear[treatment.TreatType] = 0;
-      }
-      treatmentBreakdownByYear[treatment.TreatType] += 1;
-    });
-    initOptionsTotalCost(totalCostByYear);
-    initOptionsTreatmentBreakdown(treatmentBreakdownByYear);
-    const ro = new ResizeObserver(() => {
-      if (totalCostGraph.current) {
-        totalCostGraph.current.resize();
-      }
-      if (treatmentBreakdownGraph.current) {
-        treatmentBreakdownGraph.current.resize();
-      }
-    });
-    if (chartsRef.current) {
-      ro.observe(chartsRef.current);
+    };
+    if (type === "bar") {
+      return {
+        ...baseOptions,
+        xAxis: {
+          type: "category",
+          data: keys,
+          axisLabel: {
+            color: "#ffffff"
+          },
+          axisLine: {
+            lineStyle: {
+              color: "#ffffff"
+            }
+          }
+        },
+        yAxis: {
+          type: "value",
+          axisLabel: {
+            color: "#ffffff"
+          },
+          axisLine: {
+            lineStyle: {
+              color: "#ffffff"
+            }
+          }
+        },
+        series: [
+          {
+            name: title,
+            data: values,
+            type: "bar",
+            itemStyle: {
+              color: "#ffffff"
+            },
+            emphasis: {
+              itemStyle: {
+                color: "#ffffff"
+              }
+            }
+          }
+        ]
+      };
     }
+    if (type === "line") {
+      return {
+        ...baseOptions,
+        xAxis: {
+          type: "category",
+          data: keys,
+          axisLabel: {
+            color: "#ffffff"
+          },
+          axisLine: {
+            lineStyle: {
+              color: "#ffffff"
+            }
+          }
+        },
+        yAxis: {
+          type: "value",
+          axisLabel: {
+            color: "#ffffff"
+          },
+          axisLine: {
+            lineStyle: {
+              color: "#ffffff"
+            }
+          }
+        },
+        series: [
+          {
+            name: title,
+            data: values,
+            type: "line",
+            itemStyle: {
+              color: "#ffffff"
+            },
+            lineStyle: {
+              color: "#ffffff"
+            },
+            emphasis: {
+              itemStyle: {
+                color: "#ffffff"
+              }
+            }
+          }
+        ]
+      };
+    }
+    if (type === "pie") {
+      return {
+        ...baseOptions,
+        series: [
+          {
+            name: title,
+            type: "pie",
+            radius: "50%",
+            data: keys.map((key, index) => ({
+              name: key,
+              value: values[index]
+            })),
+            itemStyle: {
+              color: "#ffffff"
+            },
+            label: {
+              color: "#ffffff"
+            },
+            emphasis: {
+              itemStyle: {
+                color: "#ffffff"
+              }
+            }
+          }
+        ]
+      };
+    }
+    return baseOptions;
   };
   reactExports.useLayoutEffect(() => {
-    computeAndRender();
-    const handler = () => computeAndRender();
-    window.addEventListener("filter-updated", handler);
-    return () => window.removeEventListener("filter-updated", handler);
-  }, []);
-  const initOptionsTotalCost = (totalCostByYear) => {
-    let years = Object.keys(totalCostByYear);
-    let totalCosts = Object.values(totalCostByYear);
-    let option = {
-      backgroundColor: "transparent",
-      title: {
-        text: "Total Cost by Year"
-      },
-      xAxis: {
-        type: "category",
-        data: years
-      },
-      yAxis: {
-        type: "value"
-      },
-      legend: {
-        show: true,
-        data: ["Total Cost"]
-      },
-      series: [
-        {
-          name: "Total Cost",
-          data: totalCosts,
-          type: "bar"
+    if (chartRef.current && data) {
+      if (chartInstance.current) {
+        chartInstance.current.dispose();
+      }
+      chartInstance.current = init(chartRef.current, "dark");
+      const options = createChartOptions();
+      chartInstance.current.setOption(options);
+      const resizeObserver = new ResizeObserver(() => {
+        if (chartInstance.current) {
+          chartInstance.current.resize();
         }
-      ]
-    };
-    totalCostGraph.current = init(totalCostRef.current, "dark");
-    totalCostGraph.current.setOption(option);
-  };
-  const initOptionsTreatmentBreakdown = (treatmentBreakdownByYear) => {
-    let treatmentTypes = Object.keys(treatmentBreakdownByYear);
-    let treatmentCounts = Object.values(treatmentBreakdownByYear);
-    let option = {
-      backgroundColor: "transparent",
-      title: {
-        text: "Treatment Breakdown"
-      },
-      xAxis: {
-        type: "category",
-        data: treatmentTypes
-      },
-      yAxis: {
-        type: "value"
-      },
-      color: ["#66B88F"],
-      legend: {
-        show: true,
-        data: ["Treatment Breakdown"]
-      },
-      series: [
-        {
-          name: "Treatment Breakdown",
-          data: treatmentCounts,
-          type: "bar"
+      });
+      resizeObserver.observe(chartRef.current);
+      return () => {
+        resizeObserver.disconnect();
+        if (chartInstance.current) {
+          chartInstance.current.dispose();
         }
-      ]
-    };
-    treatmentBreakdownGraph.current = init(treatmentBreakdownRef.current, "dark");
-    treatmentBreakdownGraph.current.setOption(option);
-  };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "w-100 h-100 d-flex flex-column", ref: chartsRef, children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-100 h-50", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-100 h-100", ref: totalCostRef, id: "totalCost" }) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-100 h-50", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-100 h-100", ref: treatmentBreakdownRef, id: "treatmentBreakdown" }) })
-  ] });
+      };
+    }
+  }, [data, type, title]);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "div",
+    {
+      ref: chartRef,
+      style: {
+        width,
+        height,
+        zIndex: 1e3,
+        position: "relative"
+      }
+    }
+  );
 };
 function RightPanel(props) {
   const { title, open, onClose, width = 520, children } = props;
@@ -1251,6 +1343,366 @@ function RightPanel(props) {
           }
         ),
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "overflow-auto h-100 p-2", children })
+      ] })
+    }
+  );
+}
+const editIcon = "data:image/svg+xml,%3csvg%20width='17'%20height='17'%20viewBox='0%200%2017%2017'%20fill='%23fff'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3crect%20width='17'%20height='17'%20fill='url(%23pattern0_36_154)'/%3e%3cdefs%3e%3cpattern%20id='pattern0_36_154'%20patternContentUnits='objectBoundingBox'%20width='1'%20height='1'%3e%3cuse%20xlink:href='%23image0_36_154'%20transform='scale(0.015625)'/%3e%3c/pattern%3e%3cimage%20id='image0_36_154'%20width='64'%20height='64'%20preserveAspectRatio='none'%20xlink:href='data:image/png;base64,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'/%3e%3c/defs%3e%3c/svg%3e";
+const greenMarkerSvg = "data:image/svg+xml,%3csvg%20width='24'%20height='39'%20viewBox='0%200%2024%2039'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3crect%20width='24'%20height='39'%20fill='url(%23pattern0_38_41)'/%3e%3cdefs%3e%3cpattern%20id='pattern0_38_41'%20patternContentUnits='objectBoundingBox'%20width='1'%20height='1'%3e%3cuse%20xlink:href='%23image0_38_41'%20transform='matrix(0.0153846%200%200%200.00946746%200%20-0.00650888)'/%3e%3c/pattern%3e%3cimage%20id='image0_38_41'%20width='65'%20height='107'%20preserveAspectRatio='none'%20xlink:href='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEEAAABrCAMAAAAfHh8nAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAGlQTFRFB3da6enp////JohvZKqYRZmD4O7qoszBwd3Wg7ut9PT0NpF5VaKO7/b1/v7+0ebg+vr60OXgF4Bkg7usdLOiksO37+/v8fHx8Pf19/f36urq7OzssdTL8PDw8/Pzk8S37e3t9fX1////8VEJ7gAAACN0Uk5T/////////////////////////////////////////////wBmKYOWAAADVklEQVR42qyY6WKrIBCFMaxRaaOJabO1vb7/Q96KoKMCDtr514hfz8h2ZkgbDa2U0vEhJPSgahgnLjhrqjRCdaFkHvRSoQmyIP4oJIogKQkHlauEqiDxKKo44UzW4xwhaD4dy8tjF+X8Zx0iVPALFMf3wxjv3zA7WvkJVT2OYfB1C2Hj47ryEQCAiYMvBPMhBoIYAFQdQqGGPGsxJ+ghz/LTjX875fn1es3z05v76bMcvpOeEQaBF/f67ZWNcb05yHFIdUp4ut+lfT+/Z9O455Yh3dAnJOh6quD0yJbxOE1V1BoQXA5lPybP/PHVPy4neRiCcLPQf8SPLBQf/ed0MyIGgpOgVgAOoaAIAiSwaAowEQZEELAhzUo8ZfEwn1OAbdoRKJTwWCE83oAI2hMqC3xfz6GL3Gwz+05lCBe7TI2E+yrhbkTYTXAxBPvHsXtwy9bj1g38tv/WEGASLwThB6bREdzkmiQyTJg03BL6JdidwjFTCSbUnp3yl3AGWyJHEXKwOc4j4YgnfIEd2hE4IHygCFdA4DPCdTfhtYlQ7voO5Wwu/m2ai2bXemj+ZE3u3xd/sDf3nw/PHWfU0xA02XxOEt2ftHzzWc3tWd1svi+a2Y2TfGcNN46bz+R7sxjuzYbg7u78MMnBJDG9u9P8A7y729EsWg9zQHiYPglLGH8dfNRh4qNeSx/VndPABQHDOvVyr5CX65fT6MQY9LwYPzmaubmXQ3rahZcbPATSVzvvAAmLwiLm7SdlhiMIXy0SqC/AYoDOvCRpUS68/TORoJb1BU0CUE+F0iQRGg9B1wmAWvvqLJZAYN5KTSQQhL9a5GgAD9SbKn0q5zUvTZ7KOUEiCTJcueMmtI7U/mcU4RwhoFZVrWP9B5a2mjwEkbaafF0UliphQRCpEpa9IJ6woP0ElbCgA/0onibBQ1BpEnxdNZ4kwUeQ2D0V7uxR3LaO9QZTJPj7kzRBgp8gEyQEeqQULyFAkHgJoU4vRUsIESRaQrDbTLESggSJlRDueFOkhDBBIiWECTMRNL1vPxMhNxBa6CCLdgtBRY8mDAEcVrzdRlAYCVHCIIK3WwkKISFOsGa7bLcThPemTCGYq5y1ewhiVcIaob10TYpdBE31TkIr1gb8F2AAycuA0WML7kwAAAAASUVORK5CYII='/%3e%3c/defs%3e%3c/svg%3e";
+const redMarkerSvg = "data:image/svg+xml,%3csvg%20width='24'%20height='39'%20viewBox='0%200%2024%2039'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3crect%20width='24'%20height='39'%20fill='url(%23pattern0_38_42)'/%3e%3cdefs%3e%3cpattern%20id='pattern0_38_42'%20patternContentUnits='objectBoundingBox'%20width='1'%20height='1'%3e%3cuse%20xlink:href='%23image0_38_42'%20transform='matrix(0.0153846%200%200%200.00946746%200%20-0.00650888)'/%3e%3c/pattern%3e%3cimage%20id='image0_38_42'%20width='65'%20height='107'%20preserveAspectRatio='none'%20xlink:href='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEEAAABrCAMAAAAfHh8nAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAHJQTFRFyTcz6enp////5JuZ0FBN3YKA12lm9PT067Sy011Z+Obl2nZz8c3M/PLy9drZ/v7++vr6zERA9dnZ56el7+/v8fHx7Ozs4Y+N9/f36urq8s3M/PPy+Obm8PDw7sC/8/Pz4Y+M56im67Sz7e3t9fX1////mvWTXwAAACZ0Uk5T/////////////////////////////////////////////////wCneoG8AAADXUlEQVR42qyY22KkIAyGcQTEA+2o0zm1M9121/d/xa0IGhEwaHPVKn7zBwIkIV3QZFVVMjyE+F40LePEGGdtE0doLpTYRi8NmiBy4rZcoAiCEr9RsUpochK2vAkTUrJuaYAg+XwsL9PeSvux9BEaOAN5+nKY7OULekcbN6GppzEMfq4hbHpdNy4CALCPg8s+mAsxEooRQO8Hn91HP+vCJsjRz/LdjH89ZtnpdMqy46t59F6O8yQtwijwj/n8+kgmO10NZFxvNic8zfNv/X12S+Z2yzTj2wx9QoKs5wqO52Rp5+NcRS0BwfhQDmOyxG2fw+ty5ociFGYVhkl8S3z2NkynWZFiJBgJ9xWAQdyhCAIksKAL0BEGRBCwIVUkHpOwqen8ANu0J1Ao4bxCOL8CEXQgNBr4su5Db5naZvqbRhEuOkyVhNsq4aZE6E1wUQT9T9q/uCbrdu0HfumfVQToxANB+Avd6AmV/ls5kWBMuaG/qn4IQh9+mKUEC6rPTvFDSMGWyFCEDGyOdCKkeMIn2KE9gQPCG4pwAgRuEU67CY9NhHLXPJTWWvzbtBbtrnhofyUm9++LX9ib+8+H544z6qkIkmw+J4kcTlq++azm+qxuN98XrXXjRN9Z441j1jP63szHe7MluLs7O8x8UE7M7+64/AHe3d2ULOoc5oDIYQYnNEEQW8VPgMM98ljmUf05DbIgkLDOc7mHL5cbwmnKxBjMeTH55JTM2bkcMqdd5HJjDoHMq03uAAmLwiKU28/KDEMoXLWIp74AwQAz85LEWbnI7Z+RhGpZX9AoAHVUKG0UoXUQZB0BqKWrzmIRBOas1IoIQuGuFjkawD31ZhW/lHbNS6OX0iYIJEH4K3fcgtaB2j9FEdIAARVVtQz1H1hcNDkIRVw0ubooLFbCglDESlj2gnhEQLsJVURAe/pRPE6Cg1DFSXB11XiUBBdBYPeUv7NHcds61BuMkeDuT9IICW6CiJDg6ZFSvAQPQeAl+Dq9FC3BRxBoCd5uM8VK8BIEVoK/402REvwEgZTgJ1giaHzf3hIhNhA6mEHm3RZCFTyaMARwWPFuG6HCSAgSRhG820qoEBLCBJ1sl912QuG8KWMI6ipn3R5CsSphjdBd+ibFLoKkciehK9YG/BdgAN/SoLCifGSBAAAAAElFTkSuQmCC'/%3e%3c/defs%3e%3c/svg%3e";
+function ProjectPopup(props) {
+  const { open, onClose, width = 400, children, projectData } = props;
+  const [activeTab, setActiveTab] = reactExports.useState("projects");
+  const [showInformation, setShowInformation] = reactExports.useState(true);
+  const [showIdentification, setShowIdentification] = reactExports.useState(false);
+  const [showDescription, setShowDescription] = reactExports.useState(false);
+  const popupRef = reactExports.useRef(null);
+  reactExports.useEffect(() => {
+    if (open) {
+      setShowInformation(true);
+      setShowIdentification(true);
+      setShowDescription(true);
+      setActiveTab("projects");
+    }
+  }, [open]);
+  const formatCurrencyNoDecimals = (value) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(value || 0);
+  };
+  const renderIdentificationContent = () => {
+    var _a;
+    if (!projectData) return null;
+    const { projectId, projectRoute, projectYear, projectCost, features } = projectData;
+    const firstFeature = ((_a = features == null ? void 0 : features[0]) == null ? void 0 : _a.attributes) || {};
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { fontFamily: "sans-serif" }, className: "mt-3", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mb-1", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "col-6 mb-3", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mb-1 text-white", children: "PROJECT ID" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-1", style: { color: "#D9D9D9" }, children: projectId })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "col-6 mb-3", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mb-1 text-white", children: "ROUTE" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mb-1", style: { color: "#D9D9D9" }, children: projectRoute })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "col-6 mb-3", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mb-1 text-white", children: "YEAR" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mb-1", style: { color: "#D9D9D9" }, children: projectYear })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "col-6 mb-3", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mb-1 text-white", children: "PROJECT COST" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mb-1", style: { color: "#D9D9D9" }, children: formatCurrencyNoDecimals(projectCost) })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col-12 mb-3", children: renderTreatmentContent() }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "col-12 mb-3", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mb-1 text-white", children: "NOTES" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "div",
+            {
+              className: "border text-black p-2 rounded",
+              style: { backgroundColor: "#D9D9D9", height: "115px" },
+              children: firstFeature.Notes || "N/A"
+            }
+          )
+        ] })
+      ] }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-white  d-flex justify-content-end", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        "button",
+        {
+          className: "btn d-flex  align-items-center gap-2",
+          style: {
+            background: "#03193eff",
+            color: "#fff"
+          },
+          onClick: () => console.log("Save Button clicked"),
+          children: [
+            " ",
+            "SAVE"
+          ]
+        }
+      ) })
+    ] });
+  };
+  const renderTreatmentContent = () => {
+    var _a;
+    if (!projectData) return null;
+    const { features } = projectData;
+    const firstFeature = ((_a = features == null ? void 0 : features[0]) == null ? void 0 : _a.attributes) || {};
+    const treatmentList = [firstFeature];
+    const handleEditTreatment = () => {
+      console.log("Edit treatment clicked:");
+    };
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "h4",
+        {
+          style: {
+            color: "#fff",
+            fontWeight: "normal",
+            marginBottom: "10px",
+            display: "inline-block"
+          },
+          children: "TREATMENTS"
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        "table",
+        {
+          className: "table table-bordered table-striped",
+          style: {
+            "--bs-table-bg": "#15346A",
+            "--bs-table-color": "#fff",
+            "--bs-border-color": "#fff",
+            "--bs-table-striped-color": "#fff",
+            "--bs-table-hover-color": "#fff"
+          },
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("thead", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("tr", { children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("th", { children: "Type" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("th", { children: "Section" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("th", { children: "Treatment" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("th", { children: "Total Cost" })
+            ] }) }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("tbody", { children: treatmentList.map((item, index) => /* @__PURE__ */ jsxRuntimeExports.jsxs("tr", { children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("td", { children: item.TreatmentType }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("td", { children: [
+                item.SectionFrom,
+                " - ",
+                item.SectionTo
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("td", { children: item.Treatment }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("td", { children: [
+                " ",
+                formatCurrencyNoDecimals(item.TotalCost)
+              ] })
+            ] }, index)) })
+          ]
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2 text-white  d-flex justify-content-end", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        "button",
+        {
+          className: "btn d-flex  align-items-center gap-2",
+          style: {
+            background: "#03193eff",
+            color: "#fff"
+          },
+          onClick: () => handleEditTreatment(),
+          children: [
+            " ",
+            "EDIT TREATMENT",
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "img",
+              {
+                src: editIcon,
+                alt: "edit",
+                style: { width: "18px", height: "18px" }
+              }
+            )
+          ]
+        }
+      ) })
+    ] });
+  };
+  const renderProjectsTab = () => {
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "d-flex justify-content-between align-items-center mb-3", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "d-flex align-items-center gap-2", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "a",
+          {
+            href: "#start",
+            className: "d-flex align-items-center text-decoration-underline",
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "img",
+                {
+                  src: greenMarkerSvg,
+                  alt: "Start",
+                  style: { width: "18px", height: "18px" }
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-white text-decoration-underline ms-1", children: "Start" })
+            ]
+          }
+        ) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "d-flex align-items-center gap-2", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "a",
+          {
+            href: "#end",
+            className: "d-flex align-items-center text-decoration-underline",
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "img",
+                {
+                  src: redMarkerSvg,
+                  alt: "End",
+                  style: { width: "18px", height: "18px" }
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-white text-decoration-underline me-1", children: "End" })
+            ]
+          }
+        ) })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mb-4", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-4", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "h4",
+          {
+            className: "mb-2",
+            style: {
+              color: "#fff",
+              fontWeight: "normal",
+              paddingBottom: "2px",
+              display: "inline-block",
+              marginLeft: "15px"
+            },
+            children: "PROJECT INFORMATION"
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "ms-3", children: renderIdentificationContent() })
+      ] }) })
+    ] });
+  };
+  const renderChartsTab = () => {
+    const { getTreatmentsFromDB, getSelectedScenario } = useApp();
+    const computeData = () => {
+      let scenarioId = getSelectedScenario();
+      let treatments = getTreatmentsFromDB(scenarioId);
+      let totalCostByYear = {};
+      let treatmentBreakdownByYear = {};
+      let costByTreatmentType = {};
+      treatments.forEach((treatment) => {
+        if (!totalCostByYear[treatment.Year]) {
+          totalCostByYear[treatment.Year] = 0;
+        }
+        totalCostByYear[treatment.Year] += treatment.Cost;
+        if (!treatmentBreakdownByYear[treatment.TreatType]) {
+          treatmentBreakdownByYear[treatment.TreatType] = 0;
+        }
+        treatmentBreakdownByYear[treatment.TreatType] += 1;
+        if (!costByTreatmentType[treatment.TreatType]) {
+          costByTreatmentType[treatment.TreatType] = 0;
+        }
+        costByTreatmentType[treatment.TreatType] += treatment.Cost;
+      });
+      return {
+        totalCostByYear,
+        treatmentBreakdownByYear,
+        costByTreatmentType
+      };
+    };
+    const chartData = computeData();
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "h6",
+        {
+          className: "mb-3",
+          style: {
+            color: "#679CE8",
+            fontWeight: "normal",
+            borderBottom: "1px solid #679CE8",
+            paddingBottom: "2px",
+            display: "inline-block"
+          },
+          children: "CHARTS"
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        "div",
+        {
+          className: "text-white d-flex flex-column gap-3",
+          style: { height: "calc(100vh - 300px)" },
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { height: "33%" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+              ChartComponent,
+              {
+                title: "Total Cost by Year",
+                data: chartData.totalCostByYear,
+                type: "bar",
+                height: "100%"
+              }
+            ) }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { height: "33%" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+              ChartComponent,
+              {
+                title: "Treatment Count by Type",
+                data: chartData.treatmentBreakdownByYear,
+                type: "bar",
+                height: "100%"
+              }
+            ) })
+          ]
+        }
+      )
+    ] });
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "div",
+    {
+      ref: popupRef,
+      className: `position-absolute top-0 end-0 ${open ? "open" : "closed"}`,
+      style: {
+        width,
+        height: "77vh",
+        zIndex: 800,
+        boxShadow: "0 0 20px rgba(0,0,0,0.2)",
+        backgroundColor: "#15346A",
+        backdropFilter: "blur(10px)",
+        transition: "opacity 0.2s ease-in-out",
+        opacity: open ? 1 : 0,
+        pointerEvents: open ? "auto" : "none"
+      },
+      children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "d-flex flex-column h-100", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "d-flex justify-content-between align-items-center p-3", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "d-flex", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "button",
+              {
+                className: `btn btn-link text-decoration-none px-3 py-2 ${activeTab === "projects" ? "" : ""}`,
+                style: {
+                  color: activeTab === "projects" ? "#679CE8" : "#fff",
+                  borderBottom: activeTab === "projects" ? "2px solid #679CE8 " : "transparent",
+                  backgroundColor: "transparent"
+                },
+                onClick: () => setActiveTab("projects"),
+                children: "PROJECTS"
+              }
+            ),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "button",
+              {
+                className: `btn btn-link text-decoration-none px-3 py-2 ${activeTab === "charts" ? "" : ""}`,
+                style: {
+                  color: activeTab === "charts" ? "#679CE8" : "#fff",
+                  borderBottom: activeTab === "charts" ? "2px solid #679CE8 " : "transparent",
+                  backgroundColor: "transparent"
+                },
+                onClick: () => setActiveTab("charts"),
+                children: "CHARTS"
+              }
+            )
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "button",
+            {
+              className: "btn btn-link text-decoration-none p-0",
+              style: { color: "#fff", fontSize: "1.2rem" },
+              onClick: onClose,
+              children: /* @__PURE__ */ jsxRuntimeExports.jsx("i", { className: "fa-solid fa-xmark" })
+            }
+          )
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "overflow-auto h-100 p-3", style: { color: "#fff" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "div",
+          {
+            style: { transition: "opacity 0.2s ease-in-out" },
+            children: activeTab === "projects" ? renderProjectsTab() : renderChartsTab()
+          },
+          activeTab
+        ) })
       ] })
     }
   );
@@ -1413,6 +1865,11 @@ const EVENTS = {
   filterUpdated: "filter-updated",
   symbologyUpdate: "symbologyUpdate"
 };
+const calendarIcon = "data:image/svg+xml,%3csvg%20width='24'%20height='24'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3crect%20width='24'%20height='24'%20fill='url(%23pattern0_50_7)'/%3e%3cdefs%3e%3cpattern%20id='pattern0_50_7'%20patternContentUnits='objectBoundingBox'%20width='1'%20height='1'%3e%3cuse%20xlink:href='%23image0_50_7'%20transform='scale(0.015625)'/%3e%3c/pattern%3e%3cimage%20id='image0_50_7'%20width='64'%20height='64'%20preserveAspectRatio='none'%20xlink:href='data:image/png;base64,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'/%3e%3c/defs%3e%3c/svg%3e";
+const folderIcon = "data:image/svg+xml,%3csvg%20width='24'%20height='24'%20viewBox='0%200%2024%2024'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3crect%20width='24'%20height='24'%20fill='url(%23pattern0_50_15)'/%3e%3cdefs%3e%3cpattern%20id='pattern0_50_15'%20patternContentUnits='objectBoundingBox'%20width='1'%20height='1'%3e%3cuse%20xlink:href='%23image0_50_15'%20transform='scale(0.015625)'/%3e%3c/pattern%3e%3cimage%20id='image0_50_15'%20width='64'%20height='64'%20preserveAspectRatio='none'%20xlink:href='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAFCklEQVR4AeyavW4UMRSFvfwIhEACCSEKJIjEA0BBRUFS8A50JA+AlAIqiiQ1SNBRJql4BaiSiBcIoqFASqigoEAiQgiKcL6JvdrxZjNje3Y9O9rVPesZr3/uPWNf37H3lKnxOTw8nBe2hNyyJwW+CY9qqF2rSCUB6mxeLW0JpErMvjEmF24ZY64Lb6TXitJkqSRAPTwWkI3e0WdOSRZIiWcCcllfq02QUIcA9+TX1Glu+WEVeG3TZBLqEMCw29dTZ9jbfrMnP6XBnIAkkVCHADppHewDSSYhmgDNvxfCRiBWm2SyCRKiCJDRl2TIUwEHGYInqtOopJJQh4ANabwt9EWd/tLNXQEHGYL7qtO4SB/8U9R0qCRAjS8BX2vl7Qo7gfjst9PUvfSIIqGSgKYUbKgdjKSpRU3DdWFlEPqB6eiWyGX9VhkxVhKgRujkuRrPLnrKTEWmJEvzohTCqfpYVj5CsPSKi5NQSYAq4+xco7o9EhHzSTgIxIej2vHfImFJtZnvpKPgIsY/Knui1CFgVAM0/ls/hoA6qpImIoHAjNB8FF6qB6YLI0WXoyWaAClxT7gWiIejVcnzSzQBedRN79Vv4UQCNL9xNGdV6bQwbXIehWUDexkjp8KxBKhSsfmhBtaFc8JFYdrkqlWYvQw2Ulg2h4gYIgDjVZHoTolhyflrjMHRKZkqca/O2IBDZDTzQEtGlAiQ8RTCeLys/FuPZQYC/pVqTcdNseL0ej0iWZZNYgimAzb2LSgRoNybAgJrpF3CpjXmgU2LxCfAzZGd4tdufTENhizyCRgq0PWMGQFtecI4YIGliiWYZSsJsuuGYNQm7bGFznY6WSVkHwFSkFfbQ2nFEoWHZhXCF6XijNpEaI83xrfc+MhKgIznyWA4erHysOxy5tBr6qOGFwQI+K4UKQV12QiQ8RiOYnjnBRnMes3bHfco2gjU7rbAmcaubbA0FbIQIOMJTxnuGIvhBClWv7El723L+UaADGe+YzzzkmiT4T4J47HdjQA3Fcgzo0bAHSmLR95TqQvCFd0neWXVd44O4xmWhKdqeuJSiwD20hiieGJI4nWY6xTg5JjzDHkc00Qsr+oE4wbLuPkBS017ZAxfk0OCiME+s177BNy22rxDUQEnZbO6mfgEOCs/uouupz4BX6zBzmPa2+4mPgEH3TX1eMt8Ao4v1eHcGQEdfri1TJuNgFo0eYUU1t4SODVmsyE1RE6tjw6E7USpnqbVt7EjgBcawlriejrOCXQgbEenaou9EsEE6MnTGQbzFsfbnALGfCJ7eKlCF0YlZCirvgQTMND0pszOHipbHSAA1Up7/mRUIYYAd3hS1fYkf/8a21kMAbF9tbJe5wgIZXlGQChjXSufMgI64QxjCHAnx+zwct7O+lvAHx2KGYr8cafqlz9IKgmXGAJY+1l3CYaIvtg5LiBDOekptNB16TdlFmXGlBIAsc0evN8YTIANPNgwJRSmQ8hwcKNDdhr+kODyx5miw6r0IiKk3yAEE0Dr6gy22eFlp5djLQcMpYhRGY65XP44U3Tg6KvoN/QrioDQTtpcfkZAm5/OJHSbjYBJsNzmPvwR4Jax4PfqNhtpdXM2EcfYLDN0PM4yRoF+lNcvOcUXCsrYxSJuwQriE9ICpRGgtRvjCSz6UZ4qp25a5q7v/peAwcQM2Mh1gRIB5IgEggrO791ogIzWQjpX6aYihodKMEZqBj//AQAA///Wt1LBAAAABklEQVQDAAH546eJKtIwAAAAAElFTkSuQmCC'/%3e%3c/defs%3e%3c/svg%3e";
+const projectLineIcon = "data:image/svg+xml,%3csvg%20width='23'%20height='23'%20viewBox='0%200%2023%2023'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3crect%20width='23'%20height='23'%20fill='url(%23pattern0_50_24)'/%3e%3cdefs%3e%3cpattern%20id='pattern0_50_24'%20patternContentUnits='objectBoundingBox'%20width='1'%20height='1'%3e%3cuse%20xlink:href='%23image0_50_24'%20transform='scale(0.015625)'/%3e%3c/pattern%3e%3cimage%20id='image0_50_24'%20width='64'%20height='64'%20preserveAspectRatio='none'%20xlink:href='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA8BJREFUeNrsm71uGkEQxzlAUHJFChcGIuUBHAkDlizZhamTgt4u3LvwA1DwACmujyXTUzg1KbCEZGEa94mUg4YixUGBJYuzs+ucozPmjv2YmUUi29jIwjv/397szOzcWqVSKZXY4JFMbPjYeABpE5N2Op33uVyuYVnWJ/756enp22QyadZqtV/UtliUe0BI+PGyvzMQLWoQJABWCTcJAhWArHATIFAA6AqnBAEKAFo4BQgQANjCMUFoAYDw8WcjDO4RSgCgNzeTm6UUAGxDTYAQAkBtGOV8sQBMx3GK+ZcCWLcEBtOeNwD6/f6XZDJ5pjCP9/j42JpOpw5W5qYLgtnnVCqV80gATHyDiW8oCHdGo5FTr9c9ijyg3W7b+Xz+LFgoWxJCk0FoLgUwGAx+sh/FdRUOBMLd3d39EHUgUpTwqy573FumxPPB5+Y2cFskvlaMPBFi/+hKOH5a1mfbtn/c3t5ecN80cajC5+Y2cFskFu4qEsD9/T33DakV5RsSJYgF4bKboRdojI4COhsMZumqGQEi96vIRGhdQGAJF06FTYHAFi5dDFGBoBKuXA5jgaAWrn0gAgWC/25CeCyA6+vrnVQqZbOQ4a56ZHVBKA6wLPQVAC6mUCh8Z6uxI+u7RCCkhN/c3JywhTwL9Ljsu5fhOuANAJ5g6HZtkEBIC0+n041lqb3v++fVatWJKoZ+rzKaGASY8JD9d+VyuaQMgAiElPBer3eYzWYvRIs5Vg2mpV2ACIS08EwmwyPIoUwxxJ6AuvAmSAQCXfjLPLPZ7Ojg4OAuNgyK+BIEiK2trWfQ4/H4Dll4pF2xiRAFCJGhKbzL7DiNskMoEzQFQlf4w8NDc39/vwuWCmuAoPJxYeFatQAWCErh2sUQJAgTwmOPxLa3t4+ZMTYz0t3b27vEBMEEuIphV0j4S7SJKuxeAeA1uW3bg4VExZ3P500REEFjBbUqlBG+mG/wJGg4HJ6G3W8xE2zHHDELgcCqCnWEh8eqztBcwBZSEFDCw/aHO0M6rTFUELxqY8LPAYX/23cYgHdLASg2R6FBYIONLoYCCErtcYUVOwk/bfz7vu87yK7lep53FI4G4C9IyMZlPpdImqwpXL4zRA2CWrhUJmgKhEZeAd8ZCoH4ip2yUhVdyrUAVu5OKRykGIICYUI4CAAIEIm/L2TY1MJBAQCBID9qAweACQLrzRPUKzMQILCvzZBcmlJsYJBcnCK9NicCgvrqnGXi7nAAgretP/LQxwuh4MVLh/rypPX/8vSGj40H8EeAAQCggkAeUgMLeAAAAABJRU5ErkJggg=='/%3e%3c/defs%3e%3c/svg%3e";
+const wrenchIcon = "data:image/svg+xml,%3csvg%20width='26'%20height='26'%20viewBox='0%200%2026%2026'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3crect%20width='26'%20height='26'%20fill='url(%23pattern0_53_27)'/%3e%3cdefs%3e%3cpattern%20id='pattern0_53_27'%20patternContentUnits='objectBoundingBox'%20width='1'%20height='1'%3e%3cuse%20xlink:href='%23image0_53_27'%20transform='scale(0.015625)'/%3e%3c/pattern%3e%3cimage%20id='image0_53_27'%20width='64'%20height='64'%20preserveAspectRatio='none'%20xlink:href='data:image/png;base64,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'/%3e%3c/defs%3e%3c/svg%3e";
+const arrowDown = "data:image/svg+xml,%3csvg%20width='23'%20height='18'%20viewBox='0%200%2023%2018'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cg%20filter='url(%23filter0_d_73_2)'%3e%3cpath%20d='M5%200.550003L12.2626%209'%20stroke='%23707070'/%3e%3cpath%20d='M12.1899%209L18%200.550003'%20stroke='%23707070'/%3e%3c/g%3e%3cdefs%3e%3cfilter%20id='filter0_d_73_2'%20x='0.62085'%20y='0.224091'%20width='21.7911'%20height='17.1018'%20filterUnits='userSpaceOnUse'%20color-interpolation-filters='sRGB'%3e%3cfeFlood%20flood-opacity='0'%20result='BackgroundImageFix'/%3e%3cfeColorMatrix%20in='SourceAlpha'%20type='matrix'%20values='0%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%20127%200'%20result='hardAlpha'/%3e%3cfeOffset%20dy='4'/%3e%3cfeGaussianBlur%20stdDeviation='2'/%3e%3cfeComposite%20in2='hardAlpha'%20operator='out'/%3e%3cfeColorMatrix%20type='matrix'%20values='0%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200.25%200'/%3e%3cfeBlend%20mode='normal'%20in2='BackgroundImageFix'%20result='effect1_dropShadow_73_2'/%3e%3cfeBlend%20mode='normal'%20in='SourceGraphic'%20in2='effect1_dropShadow_73_2'%20result='shape'/%3e%3c/filter%3e%3c/defs%3e%3c/svg%3e";
 const Filter = reactExports.forwardRef(({}, ref) => {
   const { toggleLoading, toggleLoadingScenario, changeFilterValues, getFeatureLayer, getSelectedScenario, getSelectedUser, changeSelectedScenario, changeSelectedUser, getTreatmentsFromDB, getUniqueUsersFromDB, getScenariosFromDB, getProjectsFromDB, loadTreatments } = useApp();
   const formRef = reactExports.useRef(null);
@@ -1430,6 +1887,9 @@ const Filter = reactExports.forwardRef(({}, ref) => {
     treatment: [],
     route: []
   });
+  const [openSections, setOpenSections] = reactExports.useState(
+    { scenario: false, year: false, asset: false, treatment: false, route: false }
+  );
   reactExports.useEffect(() => {
   }, []);
   reactExports.useImperativeHandle(ref, () => ({
@@ -1646,6 +2106,7 @@ const Filter = reactExports.forwardRef(({}, ref) => {
     featureLayer.definitionExpression = definition;
     console.log("📌 Applied definitionExpression:", definition);
     (_a = featureLayer.refresh) == null ? void 0 : _a.call(featureLayer);
+    console.log("featureLayer.source========", featureLayer.source);
     const useCostBasedSymbology = whereClauses.length > 0;
     window.dispatchEvent(new CustomEvent(EVENTS.symbologyUpdate, {
       detail: { useCostBasedSymbology }
@@ -1671,42 +2132,66 @@ const Filter = reactExports.forwardRef(({}, ref) => {
   const onChange = () => {
     applyFilter(formRef.current);
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "filters d-flex flex-column gap-2 w-100", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "select",
-      {
-        ref: userRef,
-        className: "form-select w-100",
-        name: "user_id",
-        id: "user_id",
-        "data-filter": "user",
-        onChange: (e) => {
-          changeUser(e.target.value);
-        },
-        style: { borderColor: "var(--primary-400)", backgroundColor: "var(--primary-800)", color: "var(--white)" },
-        children: /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: "Select User" })
-      }
-    ),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "select",
-      {
-        ref: scenarioRef,
-        className: "form-select w-100",
-        name: "scenario_id",
-        id: "scenario_id",
-        "data-filter": "scenario",
-        onChange: (e) => {
-          changeScenario(e.target.value);
-        },
-        style: { borderColor: "var(--primary-400)", backgroundColor: "var(--primary-800)", color: "var(--white)" },
-        children: /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: "Select Scenario" })
-      }
-    ),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("form", { className: "d-flex flex-column gap-2", onSubmit, ref: formRef, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(MultiSelect, { className: "w-100", options: options.year, selectedValues: selectedValues.year, onChange, name: "year", id: "year", placeholder: "Select Year" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(MultiSelect, { className: "w-100", options: options.asset_type, selectedValues: selectedValues.asset_type, onChange, name: "asset_type", id: "asset_type", placeholder: "Select Asset Type" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(MultiSelect, { className: "w-100", options: options.treatment, selectedValues: selectedValues.treatment, onChange, name: "treatment", id: "treatment", placeholder: "Select Treatment" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(MultiSelect, { className: "w-100", options: options.route, selectedValues: selectedValues.route, onChange, name: "route", id: "route", placeholder: "Select Route" })
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "filters d-flex flex-column gap-4 w-100 mt-4", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { type: "button", className: `section-toggle ${openSections.scenario ? "is-open" : ""}`, onClick: () => setOpenSections((prev) => ({ ...prev, scenario: !prev.scenario })), children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("img", { className: "filter-icon", src: folderIcon, alt: "scenario" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "SELECT SCENARIO" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: arrowDown, alt: "Arrow Down", className: "arrow-down-icon" })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "section-content", style: { display: openSections.scenario ? "block" : "none" }, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "select",
+        {
+          ref: userRef,
+          className: "form-select w-100",
+          name: "user_id",
+          id: "user_id",
+          "data-filter": "user",
+          onChange: (e) => {
+            changeUser(e.target.value);
+          },
+          style: { borderColor: "var(--primary-400)", backgroundColor: "var(--primary-800)", color: "var(--white)" },
+          children: /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: "Select User" })
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "select",
+        {
+          ref: scenarioRef,
+          className: "form-select w-100 mt-2",
+          name: "scenario_id",
+          id: "scenario_id",
+          "data-filter": "scenario",
+          onChange: (e) => {
+            changeScenario(e.target.value);
+          },
+          style: { borderColor: "var(--primary-400)", backgroundColor: "var(--primary-800)", color: "var(--white)" },
+          children: /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: "Select Scenario" })
+        }
+      )
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("form", { className: "d-flex flex-column gap-4", onSubmit, ref: formRef, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { type: "button", className: `section-toggle ${openSections.year ? "is-open" : ""}`, onClick: () => setOpenSections((prev) => ({ ...prev, year: !prev.year })), children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("img", { className: "filter-icon", src: calendarIcon, alt: "year" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "YEAR" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: arrowDown, alt: "Arrow Down", className: "arrow-down-icon" })
+      ] }),
+      openSections.year && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "section-content", children: /* @__PURE__ */ jsxRuntimeExports.jsx(MultiSelect, { className: "w-100", options: options.year, selectedValues: selectedValues.year, onChange, name: "year", id: "year", placeholder: "Select Year" }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { type: "button", className: `section-toggle ${openSections.asset ? "is-open" : ""}`, onClick: () => setOpenSections((prev) => ({ ...prev, asset: !prev.asset })), children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("img", { className: "filter-icon", src: projectLineIcon, alt: "asset" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "PROJECTS TYPE(S)" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: arrowDown, alt: "Arrow Down", className: "arrow-down-icon" })
+      ] }),
+      openSections.asset && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "section-content", children: /* @__PURE__ */ jsxRuntimeExports.jsx(MultiSelect, { className: "w-100", options: options.asset_type, selectedValues: selectedValues.asset_type, onChange, name: "asset_type", id: "asset_type", placeholder: "Select Asset Type" }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { type: "button", className: `section-toggle ${openSections.treatment ? "is-open" : ""}`, onClick: () => setOpenSections((prev) => ({ ...prev, treatment: !prev.treatment })), children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("img", { className: "filter-icon", src: wrenchIcon, alt: "treatment" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "TREATMENT(S)" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: arrowDown, alt: "Arrow Down", className: "arrow-down-icon" })
+      ] }),
+      openSections.treatment && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "section-content", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(MultiSelect, { className: "w-100", options: options.treatment, selectedValues: selectedValues.treatment, onChange, name: "treatment", id: "treatment", placeholder: "Select Treatment" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(MultiSelect, { className: "w-100 mt-2", options: options.route, selectedValues: selectedValues.route, onChange, name: "route", id: "route", placeholder: "Select Route" })
+      ] })
     ] })
   ] });
 });
@@ -1760,117 +2245,157 @@ const SidebarPopup = ({ title, open, children, onClose }) => {
 };
 function FilterSidebar(props) {
   const { scenario } = useApp();
-  const { isSidebarOpen, mapContainerRef, filterRef, onOpenProjects, onOpenCharts } = props;
+  const {
+    isSidebarOpen,
+    mapContainerRef,
+    filterRef,
+    onOpenProjects,
+    onOpenCharts
+  } = props;
   const [isLegendOpen, setIsLegendOpen] = reactExports.useState(false);
   const [isBaseMapGalleryOpen, setIsBaseMapGalleryOpen] = reactExports.useState(false);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `filter-sidebar ${isSidebarOpen ? "open" : ""}`, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "d-flex flex-column overflow-hidden h-100", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "filter-sidebar-content d-flex flex-column gap-2 overflow-auto h-100", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "d-flex align-items-center gap-2 ps-2 mt-3", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("i", { className: "fa-solid fa-filter text-white" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("h6", { className: "text-white pb-0 mb-0", children: "Filters" })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("section", { children: /* @__PURE__ */ jsxRuntimeExports.jsx(Filter, { ref: filterRef }) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Separator, { className: "mb-5" }),
-      scenario && scenario != "" && /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          "button",
+  const [isCondensed, setIsCondensed] = reactExports.useState(false);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "div",
+    {
+      className: `filter-sidebar ${isSidebarOpen ? "open" : ""} ${isCondensed ? "condensed" : ""}`,
+      children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "d-flex flex-column overflow-hidden h-100", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "filter-sidebar-header d-flex align-items-center justify-content-between px-3 py-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "d-flex align-items-center gap-2", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "div",
           {
-            className: "btn w-100 d-flex justify-content-between",
-            style: { backgroundColor: "var(--primary-700)", color: "var(--primary-100)" },
-            title: "Mostrar/Ocultar Tabla",
-            onClick: onOpenCharts,
+            className: "hamburger",
+            role: "button",
+            "aria-label": "Toggle condensed",
+            onClick: () => setIsCondensed((prev) => !prev),
             children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-white", children: "Table widget" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("i", { className: "fa-solid fa-table pt-1" })
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", {}),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", {}),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", {})
             ]
           }
-        ),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          "button",
-          {
-            className: "btn w-100 mt-2 d-flex justify-content-between",
-            style: { backgroundColor: "var(--primary-700)", color: "var(--primary-100)" },
-            title: "Información del proyecto",
-            onClick: onOpenProjects,
-            children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-white", children: "Project information" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("i", { className: "fa-solid fa-project-diagram pt-1" })
-            ]
-          }
-        ),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(Separator, { className: "mt-2 mb-2" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          "button",
-          {
-            className: "btn w-100 d-flex justify-content-between",
-            style: { backgroundColor: "var(--primary-700)", color: "var(--primary-100)" },
-            title: "Resetear filtros del escenario",
-            onClick: () => {
-              var _a, _b;
-              const ok = window.confirm("Esto limpiará todos los filtros, incluyendo User y Scenario. ¿Desea continuar?");
-              if (!ok) return;
-              try {
-                localStorage.removeItem(`${STORAGE_KEYS.filtersPrefix}${scenario}`);
-                (_b = (_a = filterRef.current) == null ? void 0 : _a.hardResetAllFilters) == null ? void 0 : _b.call(_a);
-              } catch {
+        ) }) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "filter-sidebar-content d-flex flex-column gap-2 overflow-auto", children: [
+          isCondensed ? /* @__PURE__ */ jsxRuntimeExports.jsxs("nav", { className: "condensed-menu d-flex flex-column align-items-center gap-4 mt-4", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              "button",
+              {
+                className: "icon-stack d-flex flex-column align-items-center",
+                title: "Select Scenario",
+                onClick: () => setIsCondensed(false),
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: folderIcon, alt: "scenario" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+                    "SELECT ",
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("br", {}),
+                    " SCENARIO"
+                  ] })
+                ]
               }
-            },
-            children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-white", children: "Clear all filters" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("i", { className: "fa-solid fa-rotate-left pt-1" })
-            ]
-          }
-        )
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { children: [
+            ),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              "button",
+              {
+                className: "icon-stack d-flex flex-column",
+                title: "Year",
+                onClick: () => setIsCondensed(false),
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: calendarIcon, alt: "year" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "YEAR" })
+                ]
+              }
+            ),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              "button",
+              {
+                className: "icon-stack",
+                title: "Projects Type(s)",
+                onClick: () => setIsCondensed(false),
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: projectLineIcon, alt: "projects" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "PROJECTS TYPE(S)" })
+                ]
+              }
+            ),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              "button",
+              {
+                className: "icon-stack",
+                title: "Treatment(s)",
+                onClick: () => setIsCondensed(false),
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: wrenchIcon, alt: "treatment" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "TREATMENT(S)" })
+                ]
+              }
+            )
+          ] }) : /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: /* @__PURE__ */ jsxRuntimeExports.jsx("section", { children: /* @__PURE__ */ jsxRuntimeExports.jsx(Filter, { ref: filterRef }) }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Separator, { className: "mb-5" }),
+          scenario && scenario != "" && /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(Separator, { className: "mt-2 mb-2" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              "button",
+              {
+                className: "btn w-100 d-flex justify-content-between",
+                style: {
+                  backgroundColor: "var(--primary-700)",
+                  color: "var(--primary-100)"
+                },
+                title: "Resetear filtros del escenario",
+                onClick: () => {
+                  var _a, _b;
+                  const ok = window.confirm(
+                    "Esto limpiará todos los filtros, incluyendo User y Scenario. ¿Desea continuar?"
+                  );
+                  if (!ok) return;
+                  try {
+                    localStorage.removeItem(
+                      `${STORAGE_KEYS.filtersPrefix}${scenario}`
+                    );
+                    (_b = (_a = filterRef.current) == null ? void 0 : _a.hardResetAllFilters) == null ? void 0 : _b.call(_a);
+                  } catch {
+                  }
+                },
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-white", children: "Clear all filters" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("i", { className: "fa-solid fa-rotate-left pt-1" })
+                ]
+              }
+            )
+          ] })
+        ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "button",
+          SidebarPopup,
           {
-            className: "btn w-100 d-flex justify-content-between",
-            style: { backgroundColor: "var(--primary-700)", color: "var(--primary-100)" },
-            title: "Mostrar/Ocultar Leyenda",
-            onClick: () => {
-              setIsLegendOpen((prev) => !prev);
-            },
-            children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "d-flex align-items-center gap-2", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("i", { className: "fa-solid fa-list pt-1" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-white", children: "Legend" })
-            ] })
+            title: "Legend",
+            open: isLegendOpen,
+            onClose: () => setIsLegendOpen(false),
+            children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "arcgis-legend",
+              {
+                referenceElement: mapContainerRef.current,
+                className: "w-100 h-100"
+              }
+            )
           }
         ),
         /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "button",
+          SidebarPopup,
           {
-            className: "btn w-100 d-flex justify-content-between",
-            style: { backgroundColor: "var(--primary-700)", color: "var(--primary-100)" },
-            title: "Mostrar/Ocultar BaseMap Gallery",
-            onClick: () => {
-              setIsBaseMapGalleryOpen((prev) => !prev);
-            },
-            children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "d-flex align-items-center gap-2", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("i", { className: "fa-solid fa-layer-group pt-1" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-white", children: "BaseMap Gallery" })
-            ] })
+            title: "BaseMap Gallery",
+            open: isBaseMapGalleryOpen,
+            onClose: () => setIsBaseMapGalleryOpen(false),
+            children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "arcgis-basemap-gallery",
+              {
+                referenceElement: mapContainerRef.current,
+                className: "w-100 h-100"
+              }
+            )
           }
         )
       ] })
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "filter-sidebar-footer", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "© Pennsylvania Department of Transportation 2025" }) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(SidebarPopup, { title: "Legend", open: isLegendOpen, onClose: () => setIsLegendOpen(false), children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "arcgis-legend",
-      {
-        referenceElement: mapContainerRef.current,
-        className: "w-100 h-100"
-      }
-    ) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(SidebarPopup, { title: "BaseMap Gallery", open: isBaseMapGalleryOpen, onClose: () => setIsBaseMapGalleryOpen(false), children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "arcgis-basemap-gallery",
-      {
-        referenceElement: mapContainerRef.current,
-        className: "w-100 h-100"
-      }
-    ) })
-  ] }) });
+    }
+  );
 }
 const LoadingScenario = () => {
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { id: "loading-overlay", className: "loading-overlay w-100 h-100 position-absolute", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
@@ -1892,16 +2417,64 @@ const LoadingScenario = () => {
     }
   ) });
 };
+const addTreatmentIcon = "data:image/svg+xml,%3csvg%20width='28'%20height='28'%20viewBox='0%200%2028%2028'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3crect%20width='28'%20height='28'%20fill='url(%23pattern0_6_37)'/%3e%3cdefs%3e%3cpattern%20id='pattern0_6_37'%20patternContentUnits='objectBoundingBox'%20width='1'%20height='1'%3e%3cuse%20xlink:href='%23image0_6_37'%20transform='scale(0.015625)'/%3e%3c/pattern%3e%3cimage%20id='image0_6_37'%20width='64'%20height='64'%20preserveAspectRatio='none'%20xlink:href='data:image/png;base64,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'/%3e%3c/defs%3e%3c/svg%3e";
+const style = {
+  "project-treatments-bar": "_project-treatments-bar_10vl6_3",
+  "project-treatments-action": "_project-treatments-action_10vl6_23",
+  "project-treatments-icon-btn": "_project-treatments-icon-btn_10vl6_33",
+  "project-treatments-icon": "_project-treatments-icon_10vl6_33"
+};
+function ProjectTreatments() {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    "div",
+    {
+      className: `${style["project-treatments-bar"]} d-flex align-items-center justify-content-between px-3`,
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-white text-uppercase small", children: "Project Treatments" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: style["project-treatments-action"], children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "button",
+          {
+            className: `${style["project-treatments-icon-btn"]}`,
+            "aria-haspopup": "dialog",
+            children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "img",
+              {
+                src: addTreatmentIcon,
+                alt: "Project Treatments Icon",
+                className: `${style["project-treatments-icon"]}`
+              }
+            )
+          }
+        ) })
+      ]
+    }
+  );
+}
 s$1.portalUrl = "https://pennshare.maps.arcgis.com";
 function App() {
-  const { isLoading, isLoadingScenario, changeMapView, changeFeatureLayer, toggleLoading, toggleLoadingScenario, createSqlLiteDB, loadDataFromFile, loadDataFromJson } = useApp();
+  const {
+    isLoading,
+    isLoadingScenario,
+    changeMapView,
+    changeFeatureLayer,
+    toggleLoading,
+    toggleLoadingScenario,
+    createSqlLiteDB,
+    loadDataFromFile,
+    loadDataFromJson
+  } = useApp();
   const [isOpenProjects, setIsOpenProjects] = reactExports.useState(false);
   const [isOpenCharts, setIsOpenCharts] = reactExports.useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = reactExports.useState(true);
   const [isOpenRightPanel, setIsOpenRightPanel] = reactExports.useState(false);
+  const [isProjectPopupOpen, setIsProjectPopupOpen] = reactExports.useState(false);
+  const [projectPopupData, setProjectPopupData] = reactExports.useState(null);
+  const [isTreatmentListOpen, setIsTreatmentListOpen] = reactExports.useState(false);
+  const [selectedFeature, setSelectedFeature] = reactExports.useState(null);
   const mapContainerRef = reactExports.useRef(null);
   const filterRef = reactExports.useRef(null);
   const highlightHandleRef = reactExports.useRef(null);
+  const markerGraphicsRef = reactExports.useRef([]);
   const formatCurrencyNoDecimals = (value) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -1929,43 +2502,119 @@ function App() {
     if (type === "C") return "Combined";
     return type;
   };
-  const buildProjectPopupContent = (_projId, features) => {
+  const createMarkerGraphics = (features) => {
+    const markers = [];
+    features.forEach((feature) => {
+      if (feature.geometry && feature.geometry.paths && feature.geometry.paths.length > 0) {
+        const path = feature.geometry.paths[0];
+        if (path.length > 0) {
+          const startPoint = new _$1({
+            x: path[0][0],
+            y: path[0][1],
+            spatialReference: feature.geometry.spatialReference
+          });
+          const startMarker = new d$1({
+            geometry: startPoint,
+            symbol: {
+              type: "picture-marker",
+              url: greenMarkerSvg,
+              width: 20,
+              height: 30,
+              yoffset: 17
+            }
+          });
+          markers.push(startMarker);
+          const endPoint = new _$1({
+            x: path[path.length - 1][0],
+            y: path[path.length - 1][1],
+            spatialReference: feature.geometry.spatialReference
+          });
+          const endMarker = new d$1({
+            geometry: endPoint,
+            symbol: {
+              type: "picture-marker",
+              url: redMarkerSvg,
+              width: 20,
+              height: 30,
+              yoffset: 17
+            }
+          });
+          markers.push(endMarker);
+        }
+      }
+    });
+    return markers;
+  };
+  const removeMarkerGraphics = (view) => {
+    if (markerGraphicsRef.current.length > 0) {
+      markerGraphicsRef.current.forEach((marker) => {
+        view.graphics.remove(marker);
+      });
+      markerGraphicsRef.current = [];
+    }
+  };
+  const computeChartData = () => {
+    const { getTreatmentsFiltered, getFilterValues, getSelectedScenario } = useApp();
+    let filterValues = getFilterValues();
+    let scenarioId = getSelectedScenario();
+    const treatments = getTreatmentsFiltered(scenarioId, filterValues);
+    let totalCostByYear = {};
+    let treatmentBreakdownByYear = {};
+    let costByTreatmentType = {};
+    treatments.forEach((treatment) => {
+      if (!totalCostByYear[treatment.Year]) {
+        totalCostByYear[treatment.Year] = 0;
+      }
+      totalCostByYear[treatment.Year] += treatment.Cost;
+      if (!treatmentBreakdownByYear[treatment.TreatType]) {
+        treatmentBreakdownByYear[treatment.TreatType] = 0;
+      }
+      treatmentBreakdownByYear[treatment.TreatType] += 1;
+      if (!costByTreatmentType[treatment.TreatType]) {
+        costByTreatmentType[treatment.TreatType] = 0;
+      }
+      costByTreatmentType[treatment.TreatType] += treatment.Cost;
+    });
+    return {
+      totalCostByYear,
+      treatmentBreakdownByYear,
+      costByTreatmentType
+    };
+  };
+  const buildProjectPopupData = (_projId, features) => {
     var _a, _b, _c;
-    if (!(features == null ? void 0 : features.length)) return "<div>No data</div>";
+    if (!(features == null ? void 0 : features.length)) return null;
     const f2 = features[0];
     const projectId = ((_a = f2.attributes) == null ? void 0 : _a.ProjectID) || "";
     const projectRoute = ((_b = f2.attributes) == null ? void 0 : _b.Route) || "";
     const projectYear = ((_c = f2.attributes) == null ? void 0 : _c.Year) || "";
-    const projectCost = features.reduce((sum, g) => sum + calcTotalCost(g.attributes || {}, {}), 0);
-    const out = [];
-    out.push('<div style="font-family: sans-serif; padding:8px;">');
-    out.push(`<p><b>MPMS ID:</b> ${projectId}</p>`);
-    out.push(`<p><b>Route:</b> ${projectRoute}</p>`);
-    out.push(`<p><b>Year:</b> ${projectYear}</p>`);
-    out.push(`<p><b>Cost:</b> ${formatCurrencyNoDecimals(projectCost)}</p>`);
-    out.push('<h4 style="margin-top:20px;">Treatments</h4>');
-    out.push('<table style="border-collapse: collapse; width: 100%;">');
-    out.push("<thead><tr>");
-    out.push('<th style="border:1px solid #ccc; padding:6px;">Type</th>');
-    out.push('<th style="border:1px solid #ccc; padding:6px;">Section</th>');
-    out.push('<th style="border:1px solid #ccc; padding:6px;">Treatment</th>');
-    out.push('<th style="border:1px solid #ccc; padding:6px;">Total Cost</th>');
-    out.push("</tr></thead><tbody>");
-    features.forEach((g) => {
+    const projectCost = features.reduce(
+      (sum, g) => sum + calcTotalCost(g.attributes || {}, {}),
+      0
+    );
+    const treatments = features.map((g, _) => {
       const attr = g.attributes || {};
-      const spelledType = getAssetTypeLabel(attr.TreatmentType || attr.AssetType || "");
+      const spelledType = getAssetTypeLabel(
+        attr.TreatmentType || attr.AssetType || ""
+      );
       const sectionStr = `${attr.SectionFrom ?? ""}-${attr.SectionTo ?? ""}`;
       const totalCost = calcTotalCost(attr, {});
-      out.push("<tr>");
-      out.push(`<td style="border:1px solid #ccc; padding:4px;">${spelledType}</td>`);
-      out.push(`<td style="border:1px solid #ccc; padding:4px;">${sectionStr}</td>`);
-      out.push(`<td style="border:1px solid #ccc; padding:4px;">${attr.Treatment || ""}</td>`);
-      out.push(`<td style="border:1px solid #ccc; padding:4px;">${formatCurrencyNoDecimals(totalCost)}</td>`);
-      out.push("</tr>");
+      return {
+        type: spelledType,
+        section: sectionStr,
+        treatment: attr.Treatment || "",
+        totalCost,
+        attributes: attr
+      };
     });
-    out.push("</tbody></table>");
-    out.push("</div>");
-    return out.join("");
+    return {
+      projectId,
+      projectRoute,
+      projectYear,
+      projectCost,
+      treatments,
+      features
+    };
   };
   const setupPopupSelection = (view, featureLayer) => {
     if (!view) return;
@@ -1977,22 +2626,40 @@ function App() {
           (_b = (_a = highlightHandleRef.current).remove) == null ? void 0 : _b.call(_a);
           highlightHandleRef.current = null;
         }
+        removeMarkerGraphics(view);
         const response = await view.hitTest(event);
         if (!((_c = response == null ? void 0 : response.results) == null ? void 0 : _c.length)) {
           view.popup.close();
+          setIsProjectPopupOpen(false);
+          setProjectPopupData(null);
+          setIsTreatmentListOpen(false);
+          setSelectedFeature(null);
+          removeMarkerGraphics(view);
           return;
         }
-        const clickedFeature = (_d = response.results.find((r) => {
-          var _a2;
-          return ((_a2 = r.graphic) == null ? void 0 : _a2.layer) === featureLayer;
-        })) == null ? void 0 : _d.graphic;
+        const clickedFeature = (_d = response.results.find(
+          (r) => {
+            var _a2;
+            return ((_a2 = r.graphic) == null ? void 0 : _a2.layer) === featureLayer;
+          }
+        )) == null ? void 0 : _d.graphic;
         if (!clickedFeature) {
           view.popup.close();
+          setIsProjectPopupOpen(false);
+          setProjectPopupData(null);
+          setIsTreatmentListOpen(false);
+          setSelectedFeature(null);
+          removeMarkerGraphics(view);
           return;
         }
         let projId = ((_e = clickedFeature.attributes) == null ? void 0 : _e.ProjId) || ((_f = clickedFeature.attributes) == null ? void 0 : _f.ProjectID) || ((_g = clickedFeature.attributes) == null ? void 0 : _g.SchemaId) || ((_h = clickedFeature.attributes) == null ? void 0 : _h.SystemID);
         if (!projId) {
           view.popup.close();
+          setIsProjectPopupOpen(false);
+          setProjectPopupData(null);
+          setIsTreatmentListOpen(false);
+          setSelectedFeature(null);
+          removeMarkerGraphics(view);
           return;
         }
         const layerView = await view.whenLayerView(featureLayer);
@@ -2003,15 +2670,32 @@ function App() {
         const queryResult = await featureLayer.queryFeatures(query);
         if (!((_i = queryResult == null ? void 0 : queryResult.features) == null ? void 0 : _i.length)) {
           view.popup.close();
+          setIsProjectPopupOpen(false);
+          setProjectPopupData(null);
+          setIsTreatmentListOpen(false);
+          setSelectedFeature(null);
+          removeMarkerGraphics(view);
           return;
         }
         highlightHandleRef.current = layerView.highlight(queryResult.features);
-        const popupContent = buildProjectPopupContent(projId, queryResult.features);
-        view.popup.open({
-          title: "Project Information",
-          content: popupContent,
-          location: event.mapPoint
+        const markers = createMarkerGraphics(queryResult.features);
+        markers.forEach((marker, _) => {
+          view.graphics.add(marker);
         });
+        markerGraphicsRef.current = markers;
+        const attrs = queryResult.features[0].attributes;
+        console.log("queryResult.features[0]", queryResult.features);
+        console.log("feature attribute", attrs);
+        if (!attrs.TotalCost) {
+          attrs.TotalCost = calcTotalCost(attrs, {});
+        }
+        const attrsArray = [attrs];
+        setSelectedFeature(attrsArray);
+        setIsTreatmentListOpen(true);
+        const popupData = buildProjectPopupData(projId, queryResult.features);
+        setProjectPopupData(popupData);
+        setIsProjectPopupOpen(true);
+        view.popup.close();
       } catch (err) {
         console.error("Error handling segment click:", err);
         view.popup.close();
@@ -2037,7 +2721,10 @@ function App() {
         if (pending === "1" && raw) {
           toggleLoading(true);
           const scenario = await loadDataFromJson(raw);
-          await ((_a = filterRef.current) == null ? void 0 : _a.changeScenarioByImport(scenario.LastRunBy, scenario.ScenId));
+          await ((_a = filterRef.current) == null ? void 0 : _a.changeScenarioByImport(
+            scenario.LastRunBy,
+            scenario.ScenId
+          ));
           sessionStorage.removeItem(STORAGE_KEYS.scenarioRawJson);
         }
       } finally {
@@ -2046,6 +2733,13 @@ function App() {
       }
     })();
   }, []);
+  reactExports.useEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty(
+      "--filter-sidebar-height-condensed",
+      isTreatmentListOpen ? "54vh" : "65vh"
+    );
+  }, [isTreatmentListOpen]);
   const initMap = async () => {
     var _a;
     let viewElement = mapContainerRef.current;
@@ -2067,6 +2761,10 @@ function App() {
     });
     const gallery = document.querySelector("arcgis-basemap-gallery");
     gallery.source = source;
+    setTimeout(() => {
+      console.log("gallery.source:", gallery.source);
+      console.log("Basemaps:", gallery.source.basemaps);
+    }, 1e3);
     changeMapView(view);
     const featureLayer = new Xe({
       title: "Scenario Treatments",
@@ -2094,7 +2792,13 @@ function App() {
         { name: "DesignCost", type: "double" },
         { name: "ROWCost", type: "double" },
         { name: "UtilCost", type: "double" },
-        { name: "OtherCost", type: "double" }
+        { name: "OtherCost", type: "double" },
+        { name: "IndirectCostDesign", type: "double" },
+        { name: "IndirectCostOther", type: "double" },
+        { name: "IndirectCostROW", type: "double" },
+        { name: "IndirectCostUtilities", type: "double" },
+        { name: "Direction", type: "string" },
+        { name: "TotalCost", type: "double" }
       ]
     });
     featureLayer.source = [];
@@ -2116,16 +2820,65 @@ function App() {
         type: "class-breaks",
         field: "DirectCost",
         classBreakInfos: [
-          { minValue: 0, maxValue: 1e5, symbol: { type: "simple-line", color: [34, 139, 34], width: 3 }, label: "< 100k" },
-          { minValue: 100001, maxValue: 5e5, symbol: { type: "simple-line", color: [144, 238, 144], width: 3 }, label: "100k - 500k" },
-          { minValue: 500001, maxValue: 1e6, symbol: { type: "simple-line", color: [255, 255, 0], width: 3 }, label: "500k - 1M" },
-          { minValue: 1000001, maxValue: 2e6, symbol: { type: "simple-line", color: [255, 165, 0], width: 3 }, label: "1M - 2M" },
-          { minValue: 2000001, maxValue: 5e6, symbol: { type: "simple-line", color: [255, 69, 0], width: 3 }, label: "2M - 5M" },
-          { minValue: 5000001, maxValue: Infinity, symbol: { type: "simple-line", color: [178, 34, 34], width: 3 }, label: "> 5M" }
-        ]
+          {
+            minValue: 0,
+            maxValue: 1e5,
+            symbol: { type: "simple-line", color: [34, 139, 34], width: 3 },
+            label: "< 100k"
+          },
+          {
+            minValue: 100001,
+            maxValue: 5e5,
+            symbol: { type: "simple-line", color: [144, 238, 144], width: 3 },
+            label: "100k - 500k"
+          },
+          {
+            minValue: 500001,
+            maxValue: 1e6,
+            symbol: { type: "simple-line", color: [255, 255, 0], width: 3 },
+            label: "500k - 1M"
+          },
+          {
+            minValue: 1000001,
+            maxValue: 2e6,
+            symbol: { type: "simple-line", color: [255, 165, 0], width: 3 },
+            label: "1M - 2M"
+          },
+          {
+            minValue: 2000001,
+            maxValue: 5e6,
+            symbol: { type: "simple-line", color: [255, 69, 0], width: 3 },
+            label: "2M - 5M"
+          },
+          {
+            minValue: 5000001,
+            maxValue: Infinity,
+            symbol: { type: "simple-line", color: [178, 34, 34], width: 3 },
+            label: "> 5M"
+          }
+        ],
+        highlightOptions: {
+          color: [255, 0, 0],
+          haloOpacity: 0.9,
+          fillOpacity: 0.2
+        }
       };
     } else {
-      const years = [2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035];
+      const years = [
+        2023,
+        2024,
+        2025,
+        2026,
+        2027,
+        2028,
+        2029,
+        2030,
+        2031,
+        2032,
+        2033,
+        2034,
+        2035
+      ];
       const blues = [
         [222, 235, 247],
         [198, 219, 239],
@@ -2138,14 +2891,27 @@ function App() {
         [3, 19, 43]
       ];
       const uniqueValueInfos = years.map((yr, idx) => {
-        const colorIndex = idx % blues.length;
-        return { value: yr, symbol: { type: "simple-line", color: blues[colorIndex], width: 3 }, label: `${yr}` };
+        const color_ = idx % blues.length;
+        return {
+          value: yr,
+          symbol: { type: "simple-line", color: blues[color_], width: 3 },
+          label: `${yr}`
+        };
       });
       return {
         type: "unique-value",
         field: "Year",
         uniqueValueInfos,
-        defaultSymbol: { type: "simple-line", color: [128, 128, 128], width: 2 }
+        defaultSymbol: {
+          type: "simple-line",
+          color: [128, 128, 128],
+          width: 2
+        },
+        highlightOptions: {
+          color: [255, 0, 0],
+          haloOpacity: 0.9,
+          fillOpacity: 0.2
+        }
       };
     }
   };
@@ -2161,7 +2927,10 @@ function App() {
       const file = (_b = (_a = event.target) == null ? void 0 : _a.files) == null ? void 0 : _b[0];
       if (file) {
         let scenario = await loadDataFromFile(file);
-        await ((_c = filterRef.current) == null ? void 0 : _c.changeScenarioByImport(scenario.LastRunBy, scenario.ScenId));
+        await ((_c = filterRef.current) == null ? void 0 : _c.changeScenarioByImport(
+          scenario.LastRunBy,
+          scenario.ScenId
+        ));
       }
       toggleLoading(false);
     });
@@ -2178,10 +2947,32 @@ function App() {
     setIsOpenProjects(false);
     setIsOpenCharts(true);
   };
+  const renderProjectPopupContent = () => {
+    if (!projectPopupData) return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: "No data available" });
+    const { projectId, projectRoute, projectYear, projectCost, treatments } = projectPopupData;
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { fontFamily: "sans-serif" }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-3", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: "MPMS ID" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "bg-white border text-black p-2", children: projectId })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "mb-2", children: [
+        "Route: ",
+        projectRoute
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "mb-2", children: [
+        "Year: ",
+        projectYear
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "mb-2", children: [
+        "Cost:",
+        formatCurrencyNoDecimals(projectCost)
+      ] })
+    ] }) });
+  };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "w-100 h-100 position-relative", children: [
     isLoading && /* @__PURE__ */ jsxRuntimeExports.jsx(Loading, {}),
     isLoadingScenario && /* @__PURE__ */ jsxRuntimeExports.jsx(LoadingScenario, {}),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-100 h-100 d-flex flex-column overflow-hidden", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "w-100 h-100 position-relative", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-100 h-100 d-flex flex-column overflow-hidden", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "map-container position-relative w-100 h-100", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         FilterSidebar,
         {
@@ -2192,7 +2983,7 @@ function App() {
           onOpenCharts: openCharts
         }
       ),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `map-wrapper ${isSidebarOpen ? "sidebar-open" : ""}`, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "map-wrapper", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs(
           RightPanel,
           {
@@ -2204,15 +2995,86 @@ function App() {
                 /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex-grow-1 overflow-auto", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Projects, {}) }),
                 /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "pt-2 border-top d-flex justify-content-end", children: /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn btn-primary", children: "Save changes" }) })
               ] }),
-              isOpenCharts && /* @__PURE__ */ jsxRuntimeExports.jsx(Charts, {})
+              isOpenCharts && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "d-flex flex-column gap-3 p-3 h-100", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-100 h-33", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  ChartComponent,
+                  {
+                    title: "Total Cost by Year",
+                    data: computeChartData().totalCostByYear,
+                    type: "bar",
+                    height: "100%"
+                  }
+                ) }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-100 h-33", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  ChartComponent,
+                  {
+                    title: "Treatment Count by Type",
+                    data: computeChartData().treatmentBreakdownByYear,
+                    type: "bar",
+                    height: "100%"
+                  }
+                ) }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-100 h-33", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  ChartComponent,
+                  {
+                    title: "Cost by Treatment Type",
+                    data: computeChartData().costByTreatmentType,
+                    type: "pie",
+                    height: "100%"
+                  }
+                ) })
+              ] })
             ]
           }
         ),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("arcgis-map", { ref: mapContainerRef, basemap: "gray", padding: { left: isOpenRightPanel ? 520 : 0 }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("arcgis-home", { position: "top-right" }) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "position-absolute bottom-0 end-0 p-2 pb-4 d-flex flex-col gap-2 w-100 justify-content-end", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(ButtonWidget, { title: "Import scenario", onClick: importScenario, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("i", { className: "fa-solid fa-file-import me-2" }),
-          "Import scenario"
-        ] }) })
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "arcgis-map",
+          {
+            ref: mapContainerRef,
+            basemap: "gray",
+            padding: {
+              left: isOpenRightPanel ? 520 : 0,
+              right: isProjectPopupOpen ? 450 : 0
+            },
+            children: /* @__PURE__ */ jsxRuntimeExports.jsx("arcgis-home", { position: "top-right" })
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "div",
+          {
+            className: "position-absolute end-0 w-100 d-flex justify-content-end p-2 pb-4",
+            style: { bottom: "75px" },
+            children: /* @__PURE__ */ jsxRuntimeExports.jsxs(ButtonWidget, { title: "Import scenario", onClick: importScenario, children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("i", { className: "fa-solid fa-file-import me-2" }),
+              "Import scenario"
+            ] })
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "position-absolute bottom-0 end-0 w-100 project-treatment", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ProjectTreatments, {}) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          ProjectPopup,
+          {
+            open: isProjectPopupOpen,
+            onClose: () => {
+              var _a, _b, _c;
+              setIsProjectPopupOpen(false);
+              setProjectPopupData(null);
+              setIsTreatmentListOpen(false);
+              setSelectedFeature(null);
+              if (highlightHandleRef.current) {
+                (_b = (_a = highlightHandleRef.current).remove) == null ? void 0 : _b.call(_a);
+                highlightHandleRef.current = null;
+              }
+              if ((_c = mapContainerRef.current) == null ? void 0 : _c.view) {
+                removeMarkerGraphics(mapContainerRef.current.view);
+              }
+            },
+            width: 450,
+            projectData: projectPopupData,
+            children: renderProjectPopupContent()
+          },
+          (projectPopupData == null ? void 0 : projectPopupData.projectId) || "no-project"
+        )
       ] })
     ] }) })
   ] });

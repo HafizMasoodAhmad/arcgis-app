@@ -3,6 +3,13 @@ import { useApp } from "@/context/AppContext";
 import { MultiSelect } from "@/components/MultiSelect";
 import { STORAGE_KEYS } from "@/utils/storage";
 import { EVENTS } from "@/utils/events";
+import calendarIcon from '@/assets/calender.svg';
+import folderIcon from '@/assets/folder.svg';
+import projectLineIcon from '@/assets/project-line.svg';
+import wrenchIcon from '@/assets/wrench.svg';
+import arrowDown from '@/assets/arrow-down.svg';
+
+
 
 interface FilterProps {}
 
@@ -36,6 +43,10 @@ export const Filter = forwardRef<FilterRef, FilterProps>(({ }, ref ) => {
     const [selectedValues, setSelectedValues] = useState<{year: string[]; asset_type: string[]; treatment: string[]; route: string[]}>({
         year: [], asset_type: [], treatment: [], route: []
     });
+    // UI state: collapsible sections (independent)
+    const [openSections, setOpenSections] = useState<{scenario: boolean; year: boolean; asset: boolean; treatment: boolean; route: boolean}>(
+        { scenario: false, year: false, asset: false, treatment: false, route: false }
+    );
     
     useEffect(() => {
         // No reset handler in filters area
@@ -325,6 +336,7 @@ export const Filter = forwardRef<FilterRef, FilterProps>(({ }, ref ) => {
         featureLayer.definitionExpression = definition;
         console.log("📌 Applied definitionExpression:", definition);
         featureLayer.refresh?.();
+        console.log("featureLayer.source========",featureLayer.source)
 
         const useCostBasedSymbology = whereClauses.length > 0;
 
@@ -361,35 +373,78 @@ export const Filter = forwardRef<FilterRef, FilterProps>(({ }, ref ) => {
         applyFilter(formRef.current as HTMLFormElement);
     }
 
-    return (
-        <div className="filters d-flex flex-column gap-2 w-100">
-            <select 
-                ref={userRef}
-                className="form-select w-100" 
-                name="user_id" 
-                id="user_id" 
-                data-filter="user" 
-                onChange={(e)=>{changeUser(e.target.value)}} 
-                style={{borderColor: "var(--primary-400)", backgroundColor: "var(--primary-800)", color: "var(--white)"}}>
-                <option value="">Select User</option>
-            </select>
-            <select 
-                ref={scenarioRef}
-                className="form-select w-100"
-                name="scenario_id"
-                id="scenario_id"
-                data-filter="scenario"
-                onChange={(e)=>{changeScenario(e.target.value)}}
-                style={{borderColor: "var(--primary-400)", backgroundColor: "var(--primary-800)", color: "var(--white)"}}>
-                <option value="">Select Scenario</option>
-            </select>
+  return ( 
+        <div className="filters d-flex flex-column gap-4 w-100 mt-4">
+            {/* Section: Select Scenario */}
+            <button type="button" className={`section-toggle ${openSections.scenario?'is-open':''}`} onClick={()=>setOpenSections(prev=>({...prev, scenario: !prev.scenario}))}>
+                <img className="filter-icon" src={folderIcon} alt="scenario" />
+                <span>SELECT SCENARIO</span>
+                <img src={arrowDown}  alt="Arrow Down" className="arrow-down-icon"/>
+            </button>
+            {/* {openSections.scenario && ( */}
+                <div className="section-content" style={{ display: openSections.scenario ? 'block' : 'none' }}>
 
-            <form className="d-flex flex-column gap-2" onSubmit={onSubmit} ref={formRef}>
-                {/* Dependent filters */}
-                <MultiSelect className="w-100" options={options.year} selectedValues={selectedValues.year} onChange={onChange} name="year" id="year" placeholder="Select Year"/>
-                <MultiSelect className="w-100" options={options.asset_type} selectedValues={selectedValues.asset_type} onChange={onChange} name="asset_type" id="asset_type" placeholder="Select Asset Type"/>
-                <MultiSelect className="w-100" options={options.treatment} selectedValues={selectedValues.treatment} onChange={onChange} name="treatment" id="treatment" placeholder="Select Treatment"/>
-                <MultiSelect className="w-100" options={options.route} selectedValues={selectedValues.route} onChange={onChange} name="route" id="route" placeholder="Select Route"/>
+                    <select 
+                        ref={userRef}
+                        className="form-select w-100" 
+                        name="user_id" 
+                        id="user_id" 
+                        data-filter="user" 
+                        onChange={(e)=>{changeUser(e.target.value)}} 
+                        style={{borderColor: "var(--primary-400)", backgroundColor: "var(--primary-800)", color: "var(--white)"}}>
+                        <option value="">Select User</option>
+                    </select>
+                    <select 
+                        ref={scenarioRef}
+                        className="form-select w-100 mt-2"
+                        name="scenario_id"
+                        id="scenario_id"
+                        data-filter="scenario"
+                        onChange={(e)=>{changeScenario(e.target.value)}}
+                        style={{borderColor: "var(--primary-400)", backgroundColor: "var(--primary-800)", color: "var(--white)"}}>
+                        <option value="">Select Scenario</option>
+                    </select>
+                </div>
+            {/* )} */}
+
+            {/* Form wraps all filterable inputs so applyFilter sees everything */}
+            <form className="d-flex flex-column gap-4" onSubmit={onSubmit} ref={formRef}>
+            {/* Section: Year */}
+            <button type="button" className={`section-toggle ${openSections.year?'is-open':''}`} onClick={()=>setOpenSections(prev=>({...prev, year: !prev.year}))}>
+                <img className="filter-icon" src={calendarIcon} alt="year" />
+                <span>YEAR</span>
+                <img src={arrowDown} alt="Arrow Down" className="arrow-down-icon"/>
+            </button>
+            {openSections.year && (
+                <div className="section-content">
+                    <MultiSelect className="w-100" options={options.year} selectedValues={selectedValues.year} onChange={onChange} name="year" id="year" placeholder="Select Year"/>
+                </div>
+            )}
+
+            {/* Section: Projects Type(s) */}
+            <button type="button" className={`section-toggle ${openSections.asset?'is-open':''}`} onClick={()=>setOpenSections(prev=>({...prev, asset: !prev.asset}))}>
+                <img className="filter-icon" src={projectLineIcon} alt="asset" />
+                <span>PROJECTS TYPE(S)</span>
+                <img src={arrowDown}  alt="Arrow Down" className="arrow-down-icon"/>
+            </button>
+            {openSections.asset && (
+                <div className="section-content">
+                    <MultiSelect className="w-100" options={options.asset_type} selectedValues={selectedValues.asset_type} onChange={onChange} name="asset_type" id="asset_type" placeholder="Select Asset Type"/>
+                </div>
+            )}
+
+            {/* Section: Treatment(s) */}
+            <button type="button" className={`section-toggle ${openSections.treatment?'is-open':''}`} onClick={()=>setOpenSections(prev=>({...prev, treatment: !prev.treatment}))}>
+                <img className="filter-icon" src={wrenchIcon} alt="treatment" />
+                <span>TREATMENT(S)</span> 
+                <img src={arrowDown}  alt="Arrow Down" className="arrow-down-icon"/>
+            </button>
+            {openSections.treatment && (
+                <div className="section-content">
+                    <MultiSelect className="w-100" options={options.treatment} selectedValues={selectedValues.treatment} onChange={onChange} name="treatment" id="treatment" placeholder="Select Treatment"/>
+                    <MultiSelect className="w-100 mt-2" options={options.route} selectedValues={selectedValues.route} onChange={onChange} name="route" id="route" placeholder="Select Route"/>
+                </div>
+            )}
             </form>
         </div>
     )

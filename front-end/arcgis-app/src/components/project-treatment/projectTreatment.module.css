@@ -1,0 +1,34 @@
+
+.project-treatments-bar {
+  width: 100%;
+  height: 70px;
+  background-color: #15346a;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 2000;
+}
+
+.project-treatments-action {
+  position: relative;
+  display: inline-block;
+}
+
+.project-treatments-icon-btn {
+  background: transparent;
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.project-treatments-icon {
+  width: 28px;
+  height: 28px;
+}
+
+.project-treatments-icon-btn:hover .project-treatments-icon {
+  opacity: 0.8;
+}
+
+
+

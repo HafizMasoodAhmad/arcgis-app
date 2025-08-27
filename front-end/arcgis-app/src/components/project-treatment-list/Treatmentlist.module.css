@@ -1,0 +1,146 @@
+/* TreatmentPopup styles */
+.tp-container {
+  min-width: 960px;
+}
+
+.tp-toolbar {
+  background-color: #1e3a6d;
+  padding: 12px;
+}
+.tp-toolbar-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.pill-btn {
+  background: #0f2a56;;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+.pill-btn--active {
+  background: #2a5fbf;
+}
+
+.tp-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 8px;
+}
+.tp-switch-label {
+  color: #cbd5e1;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+.tp-switch-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #f43f5e;
+  display: inline-block;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25) inset;
+}
+
+.field {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.field-label {
+  color: #cbd5e1;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+.field-select {
+  background: #0f2a56;
+  color: #e5e7eb;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  padding: 6px 8px;
+  min-width: 140px;
+}
+
+.tp-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+.tp-action-btn {
+  background: #0f2a56;;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  padding: 6px 15px;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.tp-table {
+  background: #102a52;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-top: none;
+  overflow-y: auto; /* horizontal scroll if needed */
+  max-height: 150px; /* adjust */
+}
+
+.tp-table-inner {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(120px, 1fr));
+  min-width: max-content; /* allow horizontal scroll */
+}
+
+.tp-table-head {
+  display: contents; /* ✅ head cells part of grid */
+}
+
+.tp-table-body {
+  overflow-y: auto;
+  display: contents; /* ✅ body rows part of grid */
+}
+
+.tp-tr {
+  display: contents; /* ✅ rows align with grid */
+}
+
+.tp-th {
+  background: #112e5c;
+  color: #cbd5e1;
+  font-size: 12px;
+  text-transform: uppercase;
+  padding: 10px 12px;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.tp-td {
+  height: 35px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  background: #0c2347;
+  color: #fff;
+}
+
+/* ==================== */
+/* close btn CSS */
+/* =================== */
+.tp-close-btn {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  margin-left: auto;
+  color: #666;
+  transition: color 0.2s ease-in-out;
+}
+
+.tp-close-btn:hover {
+  color: #000;
+}

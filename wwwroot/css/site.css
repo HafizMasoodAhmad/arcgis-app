@@ -10,6 +10,63 @@ html, body {
   }
 }
 
+
+/* Navbar customization */
+.custom-navbar {
+    min-height: 70px; /* adjusted for logos */
+}
+
+/* PennDOT Logo */
+.penn-dot-logo {
+    width: 298px;
+    height: 50px;
+    object-fit: contain;
+}
+
+/* ProjectBuilder Logo */
+.project-builder-logo {
+    width: 128px;
+    height: 69px;
+    object-fit: contain;
+}
+
+/* User Icon */
+.user-icon {
+    width: 49px;
+    height: 49px;
+    border-radius: 50%;
+    transition: transform 0.2s ease-in-out;
+}
+
+.user-icon:hover {
+    transform: scale(1.1);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
   box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }

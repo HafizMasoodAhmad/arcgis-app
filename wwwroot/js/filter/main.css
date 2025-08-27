@@ -1,117 +1,248 @@
-#react-filter {
-	height: 100vh;
-	width: 100vw;
+/* ==============================
+   Global / Root
+============================== */
+:root {
+  --filter-sidebar-width: 340px;
+  --filter-sidebar-condensed-width: 135px;
+  --filter-sidebar-height-condensed: 65vh;
 }
 
+/* Fullscreen container */
+#react-filter {
+  width: 100vw;
+  height: 100vh;
+}
+
+/* ==============================
+   Loading Overlay
+============================== */
 .loading-overlay {
-	width: 100%;
-	height: 100%;
-	background-color: rgba(0, 0, 0, 0.5);
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	z-index: 1000;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
 }
 
 .loading-spinner {
-	border: 4px solid rgba(255, 255, 255, 0.3);
-	border-top: 4px solid #ffffff;
-	border-radius: 50%;
-	width: 50px;
-	height: 50px;
-	animation: spin 1s linear infinite;
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid #fff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-	0% { transform: rotate(0deg); }
-	100% { transform: rotate(360deg); }
-
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-/* Side filter panel styles */
-:root {
-    --filter-sidebar-width: 340px;
+/* ==============================
+   Map + Sidebar Layout
+============================== */
+.map-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
 }
 
+/* Sidebar should overlay */
 .filter-sidebar {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: var(--filter-sidebar-width);
-    max-width: 90vw;
-    /* Subtle primary gradient background */
-    background-color: var(--theme-primary); /* fallback */    
-    background: linear-gradient(134deg,rgba(22, 51, 106, 1) 0%, rgba(8, 24, 56, 1) 100%, rgba(237, 221, 83, 1) 100%);
-    color: #ffffff;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.06);
-    /* leave a 20px handle visible when closed */
-    transform: translateX(calc(-100% + 20px));
-    transition: transform 0.3s ease;
-    z-index: 500;
-}
-
-.filter-sidebar-content {
-    padding: 0.6rem;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--filter-sidebar-width, 300px); /* default 300px */
+  height: var(--filter-sidebar-height-condensed);
+background: #15346A;
+  z-index: 1000; /* make sure it stays above map */
+  transition: transform 0.3s ease;
+  transform: translateX(-100%);
 }
 
 .filter-sidebar.open {
-    transform: translateX(0);
+  transform: translateX(0);
 }
 
-.filter-toggle-btn {
-    position: absolute;
-    top: 50%;
-    right: -20px;
-    transform: translateY(-50%);
-    width: 40px;
-    height: 40px;
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    cursor: pointer;
-}
-
-.filter-sidebar-footer{
-    border-top: 1px solid var(--primary-400);
-    padding: 0.6rem;
-    font-size: 0.8rem;
-    color: var(--gray-500);
+.filter-sidebar.condensed {
+  width: var(--filter-sidebar-condensed-width);
+  height: var(--filter-sidebar-height-condensed);
 }
 
 .map-wrapper {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    transition: margin-left 0.3s ease;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .map-wrapper.sidebar-open {
-    margin-left: var(--filter-sidebar-width);
+  left: var(--filter-sidebar-width);
 }
 
-/* Sidebar-only button border override */
+/* ==============================
+   Sidebar Content
+============================== */
+.filter-sidebar-content {
+  padding: 0.6rem;
+}
+
+.filter-icon {
+  width: 25px;
+  height: 25px;
+}
+
+.filter-sidebar.condensed .filter-sidebar-content {
+  padding-top: 12px;
+}
+
+/* Sidebar header (hamburger) */
+.filter-sidebar-header .hamburger {
+  width: 29px;
+  height: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  margin: 10px 0 0 35px;
+}
+
+.filter-sidebar-header .hamburger span {
+  height: 2px;
+  background: #fff;
+  display: block;
+}
+
+/* Sidebar toggle button */
+.filter-toggle-btn {
+  position: absolute;
+  top: 50%;
+  right: -20px;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+/* ==============================
+   Filters Section
+============================== */
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  font-weight: 600;
+  margin: 6px 0;
+  letter-spacing: 0.5px;
+}
+
+.section-title img {
+  width: 18px;
+  height: 18px;
+  opacity: 0.95;
+}
+.icon-stack{
+ background: #15346A;
+ border: none;
+ color: #fff;
+}
+
+.icon-stack img{
+  height: 35px;
+  width: 35px;
+  margin-bottom: 5px;
+}
+
+/* Collapsible filters */
+.filters .section-toggle {
+  width: 100%;
+  padding: 8px 4px;
+  background: transparent;
+  border: none;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filters .section-toggle img {
+  width: 35px;
+  height: 35px;
+  opacity: 0.95;
+}
+
+.filters .section-toggle img.arrow-down-icon {
+  width: 25px;
+  height: 25px;
+  transition: transform 0.2s ease;
+  transform-origin: center;
+  fill: #707070;
+}
+
+.filters .section-toggle span {
+  position: relative;
+  padding-bottom: 6px;
+}
+
+.filters .section-toggle span::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: #707070;
+}
+
+
+/* ==============================
+   Sidebar Footer
+============================== */
+.filter-sidebar-footer {
+  border-top: 1px solid var(--primary-400);
+  padding: 0.6rem;
+  font-size: 0.8rem;
+  color: var(--gray-500);
+}
+
+/* ==============================
+   Buttons
+============================== */
 .filter-sidebar .btn,
 .filter-sidebar .btn:hover,
 .filter-sidebar .btn:focus,
 .filter-sidebar .btn:active,
 .filter-sidebar .btn:disabled {
-    border-color: var(--primary-400) !important;
-    background-color: var(--primary-800) !important;
-    color: var(--white) !important;
+  background-color: var(--primary-800) !important;
+  border-color: var(--primary-400) !important;
+  color: #fff !important;
 }
 
-.open{
-    display: block !important;
+.open {
+  display: block !important;
 }
 
-.closed{
-    display: none !important;
-}/* Styles for MultiSelect component */
+.closed {
+  display: none !important;
+}
+
+.project-treatment {
+  z-index: 1000;
+}
+
+/* Styles for MultiSelect component */
 
 .multi-select-container {
     position: relative;
@@ -227,6 +358,40 @@
     bottom: 0;
     z-index: 999;
 }
+
+
+
+._project-treatments-bar_10vl6_3 {
+  width: 100%;
+  height: 70px;
+  background-color: #15346a;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 2000;
+}
+
+._project-treatments-action_10vl6_23 {
+  position: relative;
+  display: inline-block;
+}
+
+._project-treatments-icon-btn_10vl6_33 {
+  background: transparent;
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+._project-treatments-icon_10vl6_33 {
+  width: 28px;
+  height: 28px;
+}
+
+._project-treatments-icon-btn_10vl6_33:hover ._project-treatments-icon_10vl6_33 {
+  opacity: 0.8;
+}
+
 
 
 /*

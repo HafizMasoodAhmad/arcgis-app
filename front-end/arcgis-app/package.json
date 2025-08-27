@@ -13,6 +13,7 @@
     "@arcgis/core": "^4.33.12",
     "@arcgis/map-components": "^4.33.13",
     "@esri/calcite-components": "^3.2.1",
+    "bootstrap": "^5.3.7",
     "echarts": "^6.0.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
