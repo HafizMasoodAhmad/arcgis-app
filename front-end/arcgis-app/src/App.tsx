@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
 import Graphic from "@arcgis/core/Graphic";
 import Point from "@arcgis/core/geometry/Point";
+import Polyline from "@arcgis/core/geometry/Polyline";
 
 import esriConfig from "@arcgis/core/config";
 import Portal from "@arcgis/core/portal/Portal";
@@ -30,6 +31,7 @@ import { LoadingScenario } from "./components/LoadingScenario";
 import ProjectTreatments from "./components/project-treatment/ProjectTreatments";
 import Treatmentlist from "./components/project-treatment-list/Treatmentlist";
 
+
 import greenMarkerSvg from "@/assets/greenMarker.svg";
 import redMarkerSvg from "@/assets/redMarker.svg";
 
@@ -52,8 +54,7 @@ function App() {
   const [isOpenRightPanel, setIsOpenRightPanel] = useState<boolean>(false);
   const [isProjectPopupOpen, setIsProjectPopupOpen] = useState<boolean>(false);
   const [projectPopupData, setProjectPopupData] = useState<any>(null);
-  const [isTreatmentListOpen, setIsTreatmentListOpen] =
-    useState<boolean>(false);
+  const [isTreatmentListOpen, setIsTreatmentListOpen] = useState<boolean>(false);
   const [selectedFeature, setSelectedFeature] = useState<any | null>(null);
 
   const mapContainerRef = useRef<HTMLArcgisMapElement>(null);
@@ -93,20 +94,18 @@ function App() {
 
   const createMarkerGraphics = (features: any[]): Graphic[] => {
     const markers: Graphic[] = [];
-
+    
+    // Create markers for start and end points
     features.forEach((feature) => {
-      if (
-        feature.geometry &&
-        feature.geometry.paths &&
-        feature.geometry.paths.length > 0
-      ) {
+      if (feature.geometry && feature.geometry.paths && feature.geometry.paths.length > 0) {
         const path = feature.geometry.paths[0];
 
         if (path.length > 0) {
+          // Create start marker (green)
           const startPoint = new Point({
             x: path[0][0],
             y: path[0][1],
-            spatialReference: feature.geometry.spatialReference,
+            spatialReference: feature.geometry.spatialReference
           });
 
           const startMarker = new Graphic({
@@ -116,16 +115,17 @@ function App() {
               url: greenMarkerSvg,
               width: 20,
               height: 30,
-              yoffset: 17,
-            },
+              yoffset: 17
+            }
           });
 
           markers.push(startMarker);
 
+          // Create end marker (red)
           const endPoint = new Point({
             x: path[path.length - 1][0],
             y: path[path.length - 1][1],
-            spatialReference: feature.geometry.spatialReference,
+            spatialReference: feature.geometry.spatialReference
           });
 
           const endMarker = new Graphic({
@@ -135,21 +135,21 @@ function App() {
               url: redMarkerSvg,
               width: 20,
               height: 30,
-              yoffset: 17,
-            },
+              yoffset: 17
+            }
           });
 
           markers.push(endMarker);
         }
       }
     });
-
+    
     return markers;
   };
 
   const removeMarkerGraphics = (view: any) => {
     if (markerGraphicsRef.current.length > 0) {
-      markerGraphicsRef.current.forEach((marker) => {
+      markerGraphicsRef.current.forEach(marker => {
         view.graphics.remove(marker);
       });
       markerGraphicsRef.current = [];
@@ -157,29 +157,29 @@ function App() {
   };
 
   const computeChartData = () => {
-    const { getTreatmentsFiltered, getFilterValues, getSelectedScenario } =
-      useApp();
-
+    const { getTreatmentsFiltered, getFilterValues, getSelectedScenario } = useApp();
+    
     let filterValues = getFilterValues();
     let scenarioId = getSelectedScenario();
     const treatments = getTreatmentsFiltered(scenarioId, filterValues);
 
+    
     let totalCostByYear: any = {};
     let treatmentBreakdownByYear: any = {};
     let costByTreatmentType: any = {};
 
-    treatments.forEach((treatment) => {
-      if (!totalCostByYear[treatment.Year]) {
+    treatments.forEach(treatment => {
+      if(!totalCostByYear[treatment.Year]) {
         totalCostByYear[treatment.Year] = 0;
       }
       totalCostByYear[treatment.Year] += treatment.Cost;
 
-      if (!treatmentBreakdownByYear[treatment.TreatType]) {
+      if(!treatmentBreakdownByYear[treatment.TreatType]) {
         treatmentBreakdownByYear[treatment.TreatType] = 0;
       }
       treatmentBreakdownByYear[treatment.TreatType] += 1;
 
-      if (!costByTreatmentType[treatment.TreatType]) {
+      if(!costByTreatmentType[treatment.TreatType]) {
         costByTreatmentType[treatment.TreatType] = 0;
       }
       costByTreatmentType[treatment.TreatType] += treatment.Cost;
@@ -188,7 +188,7 @@ function App() {
     return {
       totalCostByYear,
       treatmentBreakdownByYear,
-      costByTreatmentType,
+      costByTreatmentType
     };
   };
 
@@ -197,6 +197,9 @@ function App() {
     features: any[]
   ): any => {
     if (!features?.length) return null;
+
+    
+    
 
     const f = features[0];
     const projectId = f.attributes?.ProjectID || "";
@@ -207,7 +210,9 @@ function App() {
       0
     );
 
-    const treatments = features.map((g: any, _: number) => {
+
+
+    const treatments = features.map((g: any) => {
       const attr = g.attributes || {};
       const spelledType = getAssetTypeLabel(
         attr.TreatmentType || attr.AssetType || ""
@@ -215,12 +220,14 @@ function App() {
       const sectionStr = `${attr.SectionFrom ?? ""}-${attr.SectionTo ?? ""}`;
       const totalCost = calcTotalCost(attr, {});
 
+
+
       return {
         type: spelledType,
         section: sectionStr,
         treatment: attr.Treatment || "",
         totalCost,
-        attributes: attr,
+        attributes: attr
       };
     });
 
@@ -230,7 +237,7 @@ function App() {
       projectYear,
       projectCost,
       treatments,
-      features,
+      features
     };
   };
 
@@ -297,11 +304,35 @@ function App() {
           removeMarkerGraphics(view);
           return;
         }
+
+        
         highlightHandleRef.current = layerView.highlight(queryResult.features);
+
+        // Zoom to the selected polyline using Polyline geometry
+        try {
+          // Create a polyline from the selected features
+          const paths = queryResult.features
+            .map(feature => feature.geometry?.paths)
+            .filter(paths => paths && paths.length > 0)
+            .flat();
+          
+          if (paths.length > 0) {
+            const polyline = new Polyline({
+              paths: paths,
+              spatialReference: queryResult.features[0].geometry.spatialReference
+            });
+            
+            await view.goTo({
+              target: polyline,
+            });
+          }
+        } catch (error) {
+          console.error("Error zooming to selected line:", error);
+        }
 
         const markers = createMarkerGraphics(queryResult.features);
 
-        markers.forEach((marker, _) => {
+        markers.forEach((marker) => {
           view.graphics.add(marker);
         });
 
@@ -309,9 +340,6 @@ function App() {
 
         // Set selected feature for treatment list
         const attrs = queryResult.features[0].attributes;
-        console.log("queryResult.features[0]", queryResult.features);
-
-        console.log("feature attribute", attrs);
         // Calculate TotalCost if not present
         if (!attrs.TotalCost) {
           attrs.TotalCost = calcTotalCost(attrs, {});
@@ -320,7 +348,10 @@ function App() {
         setSelectedFeature(attrsArray);
         setIsTreatmentListOpen(true);
 
-        const popupData = buildProjectPopupData(projId, queryResult.features);
+        const popupData = buildProjectPopupData(
+          projId,
+          queryResult.features
+        );
 
         setProjectPopupData(popupData);
         setIsProjectPopupOpen(true);
@@ -355,6 +386,7 @@ function App() {
         const raw = sessionStorage.getItem(STORAGE_KEYS.scenarioRawJson);
         if (pending === "1" && raw) {
           toggleLoading(true);
+          
           const scenario = await loadDataFromJson(raw);
 
           await filterRef.current?.changeScenarioByImport(
@@ -409,17 +441,11 @@ function App() {
     const source = new PortalBasemapsSource({
       portal,
     });
-
     const gallery = document.querySelector("arcgis-basemap-gallery")!;
     gallery.source = source;
 
-  // Wait a tick to ensure the gallery has loaded its source
-setTimeout(() => {
-  console.log("gallery.source:", gallery.source);
-  console.log("Basemaps:", gallery.source.basemaps); // array of basemap items
-}, 1000);
-
     changeMapView(view);
+
 
     const featureLayer = new FeatureLayer({
       title: "Scenario Treatments",
@@ -459,11 +485,14 @@ setTimeout(() => {
 
     featureLayer.source = [];
     featureLayer.outFields = ["*"];
-    featureLayer.popupEnabled = false;
+          featureLayer.popupEnabled = false;
     featureLayer.elevationInfo = { mode: "on-the-ground" };
     featureLayer.renderer = getRenderer(false) as any;
 
+
+
     changeFeatureLayer(featureLayer);
+
     view?.map?.add(featureLayer);
 
     // Add event listener for symbology updates
@@ -519,10 +548,10 @@ setTimeout(() => {
           },
         ],
         highlightOptions: {
-          color: [255, 0, 0],
+          color: [204, 169, 173],
           haloOpacity: 0.9,
-          fillOpacity: 0.2,
-        },
+          fillOpacity: 0.2
+        }
       };
     } else {
       const years = [
@@ -541,10 +570,10 @@ setTimeout(() => {
         [3, 19, 43],
       ];
       const uniqueValueInfos = years.map((yr, idx) => {
-        const color_ = idx % blues.length;
+        const colorIndex = idx % blues.length;
         return {
           value: yr,
-          symbol: { type: "simple-line", color: blues[color_], width: 3 },
+          symbol: { type: "simple-line", color: blues[colorIndex], width: 3 },
           label: `${yr}`,
         };
       });
@@ -561,8 +590,8 @@ setTimeout(() => {
         highlightOptions: {
           color: [255, 0, 0],
           haloOpacity: 0.9,
-          fillOpacity: 0.2,
-        },
+          fillOpacity: 0.2
+        }
       };
     }
   };
@@ -580,7 +609,12 @@ setTimeout(() => {
       const file = event.target?.files?.[0];
 
       if (file) {
+
+
         let scenario = await loadDataFromFile(file);
+
+
+
         await filterRef.current?.changeScenarioByImport(
           scenario.LastRunBy,
           scenario.ScenId
@@ -610,20 +644,24 @@ setTimeout(() => {
   const renderProjectPopupContent = () => {
     if (!projectPopupData) return <div>No data available</div>;
 
-    const { projectId, projectRoute, projectYear, projectCost, treatments } =
-      projectPopupData;
+    const { projectId, projectRoute, projectYear, projectCost, treatments } = projectPopupData;
 
     return (
-      <div style={{ fontFamily: "sans-serif" }}>
+      <div style={{ fontFamily: 'sans-serif' }}>
         <div className="mb-3">
+
           <div className="">
             <p>MPMS ID</p>
-            <div className="bg-white border text-black p-2">{projectId}</div>
+            <div className="bg-white border text-black p-2">
+              {projectId}
+            </div>
           </div>
           <p className="mb-2">Route: {projectRoute}</p>
           <p className="mb-2">Year: {projectYear}</p>
           <p className="mb-2">Cost:{formatCurrencyNoDecimals(projectCost)}</p>
         </div>
+
+
       </div>
     );
   };
@@ -698,73 +736,65 @@ setTimeout(() => {
               basemap="gray"
               padding={{
                 left: isOpenRightPanel ? 520 : 0,
-                right: isProjectPopupOpen ? 450 : 0,
+                right: isProjectPopupOpen ? 450 : 0
               }}
             >
               <arcgis-home position="top-right"></arcgis-home>
             </arcgis-map>
 
-            {/* Floating Bottom-Right Block */}
-            {/* Import scenario button (outer, still bottom-right) */}
-            <div
-              className="position-absolute end-0 w-100 d-flex justify-content-end p-2 pb-4"
-              style={{ bottom: "75px" }} // move it up from bottom
-            >
-              <ButtonWidget title="Import scenario" onClick={importScenario}>
-                <i className="fa-solid fa-file-import me-2"></i>
-                Import scenario
-              </ButtonWidget>
-            </div>
-            <div className="position-absolute bottom-0 end-0 w-100 project-treatment">
-              {/* <div className="d-flex justify-content-end p-2 pb-4">
+            <div className="position-absolute bottom-0 end-0 w-100">
+              <div className="d-flex justify-content-end p-2 pb-4">
                 <ButtonWidget title="Import scenario" onClick={importScenario}>
                   <i className="fa-solid fa-file-import me-2"></i>
                   Import scenario
                 </ButtonWidget>
-              </div> */}
-              <ProjectTreatments />
+              </div>
               {/* {isTreatmentListOpen && selectedFeature && (
-                <Treatmentlist
-                  data={selectedFeature}
-                  onClose={() => {
-                    setIsTreatmentListOpen(false);
-                    setSelectedFeature(null);
-
-                    // Remove highlighting and markers when closing treatment list
-                    if (highlightHandleRef.current) {
-                      highlightHandleRef.current.remove?.();
-                      highlightHandleRef.current = null;
-                    }
-
-                    if (mapContainerRef.current?.view) {
-                      removeMarkerGraphics(mapContainerRef.current.view);
-                    }
-                  }}
-                />
+                <div className="mb-2">
+                  <Treatmentlist
+                    data={selectedFeature}
+                    onClose={() => {
+                      setIsTreatmentListOpen(false);
+                      setSelectedFeature(null);
+                      
+                      // Remove highlighting and markers when closing treatment list
+                      if (highlightHandleRef.current) {
+                        highlightHandleRef.current.remove?.();
+                        highlightHandleRef.current = null;
+                      }
+                      
+                      if (mapContainerRef.current?.view) {
+                        removeMarkerGraphics(mapContainerRef.current.view);
+                      }
+                    }}
+                  />
+                </div>
               )} */}
+              <ProjectTreatments />
             </div>
 
             {/* Custom Project Popup */}
             <ProjectPopup
-              key={projectPopupData?.projectId || "no-project"}
+              key={projectPopupData?.projectId || 'no-project'}
               open={isProjectPopupOpen}
               onClose={() => {
                 setIsProjectPopupOpen(false);
                 setProjectPopupData(null);
                 setIsTreatmentListOpen(false);
                 setSelectedFeature(null);
-
+        
                 if (highlightHandleRef.current) {
                   highlightHandleRef.current.remove?.();
                   highlightHandleRef.current = null;
                 }
-
+        
                 if (mapContainerRef.current?.view) {
                   removeMarkerGraphics(mapContainerRef.current.view);
                 }
               }}
               width={450}
               projectData={projectPopupData}
+              getMapView={() => mapContainerRef.current?.view || null}
             >
               {renderProjectPopupContent()}
             </ProjectPopup>
@@ -773,6 +803,7 @@ setTimeout(() => {
       </div>
     </div>
   );
+
 }
 
 export default App;

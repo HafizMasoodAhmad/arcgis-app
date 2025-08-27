@@ -11,10 +11,18 @@ type ProjectPopupProps = {
   children: ReactNode;
   onClose: () => void;
   projectData?: any;
+  getMapView: () => any;
 };
 
 function ProjectPopup(props: ProjectPopupProps) {
-  const { open, onClose, width = 400, children, projectData } = props;
+  const {
+    open,
+    onClose,
+    width = 400,
+    children,
+    projectData,
+    getMapView,
+  } = props;
   const [activeTab, setActiveTab] = useState<"projects" | "charts">("projects");
   const [showInformation, setShowInformation] = useState<boolean>(true);
   const [showIdentification, setShowIdentification] = useState<boolean>(false);
@@ -99,7 +107,7 @@ function ProjectPopup(props: ProjectPopupProps) {
               background: "#03193eff",
               color: "#fff",
             }}
-            onClick={() => console.log("Save Button clicked")}
+            onClick={() => {}}
           >
             {" "}
             SAVE
@@ -117,7 +125,7 @@ function ProjectPopup(props: ProjectPopupProps) {
     const treatmentList = [firstFeature];
 
     const handleEditTreatment = () => {
-      console.log("Edit treatment clicked:");
+      // Handle edit treatment logic
     };
 
     return (
@@ -190,6 +198,16 @@ function ProjectPopup(props: ProjectPopupProps) {
   };
 
   const renderProjectsTab = () => {
+    const handleStartClick = (e: React.MouseEvent) => {
+      e.preventDefault();
+      // No functionality - just visual button
+    };
+
+    const handleEndClick = (e: React.MouseEvent) => {
+      e.preventDefault();
+      // No functionality - just visual button
+    };
+
     return (
       <div>
         <div className="d-flex justify-content-between align-items-center mb-3">
@@ -197,14 +215,19 @@ function ProjectPopup(props: ProjectPopupProps) {
             <a
               href="#start"
               className="d-flex align-items-center text-decoration-underline"
+              onClick={handleStartClick}
+              style={{ cursor: "pointer" }}
             >
               <img
-                src={startMarker} // 👈 path to green marker
+                src={startMarker}
                 alt="Start"
-                style={{ width: "18px", height: "18px" }}
+                style={{ width: "30px", height: "30px" }}
               />
-              <span className="text-white text-decoration-underline ms-1">
-                Start
+              <span
+                style={{ fontSize: "18px" }}
+                className="text-white text-decoration-underline ms-1"
+              >
+                START
               </span>
             </a>
           </div>
@@ -213,14 +236,19 @@ function ProjectPopup(props: ProjectPopupProps) {
             <a
               href="#end"
               className="d-flex align-items-center text-decoration-underline"
+              onClick={handleEndClick}
+              style={{ cursor: "pointer" }}
             >
               <img
-                src={endMarker} // 👈 path to red marker
+                src={endMarker}
                 alt="End"
-                style={{ width: "18px", height: "18px" }}
+                style={{ width: "30px", height: "30px" }}
               />
-              <span className="text-white text-decoration-underline me-1">
-                End
+              <span
+                style={{ fontSize: "18px" }}
+                className="text-white text-decoration-underline me-1"
+              >
+                END
               </span>
             </a>
           </div>
