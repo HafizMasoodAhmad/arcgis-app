@@ -1,10 +1,12 @@
 /* TreatmentPopup styles */
 .tp-container {
   min-width: 960px;
+  min-height: 250px;
+  z-index: 2000;
 }
 
 .tp-toolbar {
-  background-color: #1e3a6d;
+  background-color: #C8D8E8;
   padding: 12px;
 }
 .tp-toolbar-row {
@@ -144,3 +146,192 @@
 .tp-close-btn:hover {
   color: #000;
 }
+
+/* ==================== */
+/* Table sticky header  */
+/* ==================== */
+.tp-table-scroll {
+  max-height: 150px;
+  overflow-y: auto;
+  overflow-x: auto;
+  position: relative; /* ensure stacking context for sticky header */
+  /* Firefox */
+  scrollbar-width: thin;
+
+}
+/* WebKit browsers (Chrome / Edge Chromium / Safari) */
+.tp-table-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.tp-table-scroll::-webkit-scrollbar-track {
+  background: #8097AE;
+  border-radius: 10px;
+}
+.tp-table-scroll::-webkit-scrollbar-thumb {
+  background-color: #CFCFCF;
+  border-radius: 8px;
+  border: 2px solid #C8D8E8;      /* creates spacing / framed look */
+  background-clip: padding-box;   /* important so the border is visible */
+}
+.tp-table-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: #c3c3c3;
+}
+.tp-table-scroll::-webkit-scrollbar-corner {
+  background: #8097AE; /* corner when both axes scroll */
+}
+
+/* Firefox */
+.tp-table-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #CFCFCF #8097AE; /* thumb color then track color */
+}
+
+
+.tp-table-sticky thead th,
+.tp-table-sticky thead td {
+  position: sticky;
+  top: 0;
+  background: #8097AE !important;
+  z-index: 10; /* keep above scrolling rows */
+  background-clip: padding-box;
+}
+
+/* avoid z-index issues with collapsed borders */
+.tp-table-sticky {
+  border-collapse: separate !important;
+}
+
+/* ==================== */
+/* Zebra row backgrounds */
+/* ==================== */
+.tp-table-sticky tbody tr:nth-child(odd) td {
+  background: #BAB8B8 !important;
+  color: #000;
+}
+
+.tp-table-sticky tbody tr:nth-child(even) td {
+  background: #CFCFCF !important;
+  color: #000;
+}
+
+/* ==================== */
+/* Forms section below   */
+/* ==================== */
+.tp-forms-row {
+  display: flex;
+  gap: 95px;
+  margin: 16px 10px 24px 10px;
+  flex-wrap: wrap;
+}
+
+.tp-form-card {
+  background: #C8D8E8;
+  border: 2px solid #2a4666;
+  border-radius: 4px;
+  padding: 12px 14px 14px 14px;
+  min-width: 320px;
+  flex: 1 1 360px;
+}
+
+/* width modifiers */
+.tp-form-card--sm { flex: 0 1 280px; min-width: 260px; }
+.tp-form-card--md { flex: 0 1 360px; min-width: 320px; }
+.tp-form-card--lg { flex: 0 1 480px; min-width: 420px; }
+.tp-form-card--full { flex: 1 1 100%; min-width: 100%; }
+
+.tp-form-title {
+  font-weight: 600;
+  color: #18314f;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.tp-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 24px;
+}
+
+.tp-form-grid--column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tp-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tp-form-label {
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  color: #18314f;
+  text-transform: uppercase;
+}
+
+.tp-form-input {
+  background: #e9f0f7;
+  border: 2px solid #2a4666;
+  border-radius: 2px;
+  height: 30px;
+  padding: 4px 8px;
+  color: #0b1e33;
+  width: 200px;
+}
+
+.tp-form-input:focus {
+  outline: none;
+  border-color: #18314f;
+  box-shadow: 0 0 0 1px rgba(24,49,79,0.15);
+}
+
+/* inline toggle inside Project Information */
+.tl-toggle-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+.tl-toggle-text {
+  color: #18314f;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+.tl-toggle {
+  position: relative;
+  width: 48px;
+  height: 18px;
+  display: inline-block;
+}
+.tl-toggle-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.tl-toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: #0f2a56;
+  border-radius: 999px;
+}
+.tl-toggle-slider::before {
+  content: "";
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  left: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #d43b3b;
+  border-radius: 999px;
+  transition: left 0.2s ease, background-color 0.2s ease;
+}
+.tl-toggle-input:checked + .tl-toggle-slider::before {
+  left: 32px;
+  background: #22c55e;
+}
+

@@ -1,182 +1,380 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import style from "./Treatmentlist.module.css";
 import ToggleButton from "../ToggleButton/ToggleButton";
+import DynamicForm from "@/components/DynamicForm";
+import editIcon from "@/assets/edit.svg";
+import {
+  costFields,
+  locationInformationFields,
+  projectInformationFields,
+  timeFields,
+} from "../formFields/fieldConfgis";
+const headers = [
+  "Asset Type",
+  "District",
+  "County",
+  "Direction",
+  "Total Cost",
+  "Direction Cost",
+  "Indirect Cost Design",
+  "Indirect Cost Row",
+  "Indirect Cost Utilities",
+  "Other Cost",
+];
+const data = [
+  {
+    OBJECTID: 33,
+    ProjectID: 33,
+    SystemID: 1310006,
+    DistrictNo: 6,
+    CountyCode: 9,
+    TreatmentID: "33",
+    AssetType: "B",
+    Route: 309,
+    SectionFrom: 210,
+    SectionTo: 210,
+    BridgeID: "9030902100000",
+    TreatmentType: "B",
+    Treatment: "General Preservation",
+    Year: 2031,
+    DirectCost: 89769,
+    DesignCost: 0,
+    ROWCost: 0,
+    UtilCost: 0,
+    OtherCost: 0,
+    IndirectCostDesign: null,
+    IndirectCostOther: null,
+    IndirectCostROW: null,
+    IndirectCostUtilities: null,
+    Direction: null,
+    TotalCost: 89769,
+  },
+  {
+    OBJECTID: 33,
+    ProjectID: 33,
+    SystemID: 1310006,
+    DistrictNo: 6,
+    CountyCode: 9,
+    TreatmentID: "33",
+    AssetType: "B",
+    Route: 309,
+    SectionFrom: 210,
+    SectionTo: 210,
+    BridgeID: "9030902100000",
+    TreatmentType: "B",
+    Treatment: "General Preservation",
+    Year: 2031,
+    DirectCost: 89769,
+    DesignCost: 0,
+    ROWCost: 0,
+    UtilCost: 0,
+    OtherCost: 0,
+    IndirectCostDesign: null,
+    IndirectCostOther: null,
+    IndirectCostROW: null,
+    IndirectCostUtilities: null,
+    Direction: null,
+    TotalCost: 89769,
+  },
+  {
+    OBJECTID: 33,
+    ProjectID: 33,
+    SystemID: 1310006,
+    DistrictNo: 6,
+    CountyCode: 9,
+    TreatmentID: "33",
+    AssetType: "B",
+    Route: 309,
+    SectionFrom: 210,
+    SectionTo: 210,
+    BridgeID: "9030902100000",
+    TreatmentType: "B",
+    Treatment: "General Preservation",
+    Year: 2031,
+    DirectCost: 89769,
+    DesignCost: 0,
+    ROWCost: 0,
+    UtilCost: 0,
+    OtherCost: 0,
+    IndirectCostDesign: null,
+    IndirectCostOther: null,
+    IndirectCostROW: null,
+    IndirectCostUtilities: null,
+    Direction: null,
+    TotalCost: 89769,
+  },
+  {
+    OBJECTID: 33,
+    ProjectID: 33,
+    SystemID: 1310006,
+    DistrictNo: 6,
+    CountyCode: 9,
+    TreatmentID: "33",
+    AssetType: "B",
+    Route: 309,
+    SectionFrom: 210,
+    SectionTo: 210,
+    BridgeID: "9030902100000",
+    TreatmentType: "B",
+    Treatment: "General Preservation",
+    Year: 2031,
+    DirectCost: 89769,
+    DesignCost: 0,
+    ROWCost: 0,
+    UtilCost: 0,
+    OtherCost: 0,
+    IndirectCostDesign: null,
+    IndirectCostOther: null,
+    IndirectCostROW: null,
+    IndirectCostUtilities: null,
+    Direction: null,
+    TotalCost: 89769,
+  },
+];
 
 type Option = { label: string; value: string };
 
-interface TreatmentListProps {
-  data:any [];
-  onClose: () => void;
-}
+interface TreatmentListProps {}
 
-const TogglePill: React.FC<
-  {
-    label: string;
-    active?: boolean;
-  } & React.ButtonHTMLAttributes<HTMLButtonElement>
-> = ({ label, active, ...rest }) => (
-  <button
-    className={`${style["pill-btn"]} ${
-      active ? style["pill-btn--active"] : ""
-    }`}
-    {...rest}
-  >
-    {label}
-  </button>
-);
-
-const SmallSelect: React.FC<
-  {
-    placeholder: string;
-    options?: Option[];
-  } & React.SelectHTMLAttributes<HTMLSelectElement>
-> = ({ placeholder, options = [], ...rest }) => (
-  <select className={style["field-select"]} {...rest}>
-    <option value="" disabled selected hidden>
-      {placeholder}
-    </option>
-    {options.map((o) => (
-      <option key={o.value} value={o.value}>
-        {o.label}
-      </option>
-    ))}
-  </select>
-);
-
-export const Treatmentlist: React.FC<TreatmentListProps> = ({
-  data,
-  onClose,
-}) => {
+export const Treatmentlist: React.FC<TreatmentListProps> = () => {
   const [isCommitted, setIsCommitted] = React.useState(false);
-
-  const years: Option[] = Array.from({ length: 11 }).map((_, i) => {
-    const y = 2020 + i;
-    return { label: String(y), value: String(y) };
-  });
-
-  const counties: Option[] = [
-    { label: "All Counties", value: "" },
-    { label: "County A", value: "A" },
-    { label: "County B", value: "B" },
-  ];
+  const [formValues, setFormValues] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     if (data) {
       console.log("Treatmentlist received data 👉", data);
     }
-  }, [data]);
+  });
+
+  const [selectedRows, setSelectedRows] = useState<number[]>([]);
+
+  const handleEditTreatment = () => {
+    // Handle edit treatment logic
+  };
+
+  const handleAddTreatment = () => {
+    // Handle edit treatment logic
+  };
+  const deleteTreatment = () => {
+    // Handle edit treatment logic
+  };
+
+  const handleChange = (id: string, value: string) => {
+    setFormValues((prev) => ({ ...prev, [id]: value }));
+  };
 
   return (
     <div className={style["tp-container"]}>
       <div className={style["tp-toolbar"]}>
-        <div className={style["tp-toolbar-row"]}>
-          <TogglePill label="Bridge"/>
-          <TogglePill label="Substructure Rehab" />
-
-          <ToggleButton
-            checked={isCommitted}
-            onChange={setIsCommitted}
-            label="IS COMMITTED"
-          />
-
-          <SmallSelect
-            placeholder="District 11"
-            defaultValue="11"
-            options={[{ label: "District 11", value: "11" }]}
-          />
-
-          <SmallSelect placeholder="Select Preferred Years" options={years} />
-
-          <SmallSelect
-            placeholder="Priority Order"
-            options={[{ label: "High to Low", value: "hl" }]}
-          />
-
-          <SmallSelect placeholder="County" options={counties} />
-
-          <SmallSelect placeholder="Minimum Year" options={years} />
-
-          <SmallSelect placeholder="Maximum Year" options={years} />
-
-          <button
-            className={style["tp-close-btn"]}
-            onClick={onClose}
-            title="Close"
-          >
-            ✖
-          </button>
-        </div>
-
-        <div className={style["tp-toolbar-row"]}>
-          <TogglePill label="Cost" />
-          <TogglePill label="Benefit" />
-          <TogglePill label="Sections" />
-
-          <SmallSelect
-            placeholder="Select Treatment Type"
-            options={[{ label: "Type A", value: "A" }]}
-          />
-
-          <TogglePill label="Risk" />
-          <TogglePill label="Interstate" />
-          <TogglePill label="Indirect Cost Design" />
-          <TogglePill label="Indirect Cost Row" />
-          <TogglePill label="Direction" />
-          <TogglePill label="Indirection Cost Utilities" />
-        </div>
-
         <div className={style["tp-actions"]}>
-          <button className={style["tp-action-btn"]}>Edit</button>
-          <button className={style["tp-action-btn"]}>Save</button>
-          <button className={style["tp-action-btn"]}>Delete</button>
+          <div className="d-flex align-items-center">
+            {" "}
+            {/* Add button table */}{" "}
+            <button
+              className="btn d-flex align-items-center gap-2"
+              style={{
+                background: "#03193eff",
+                color: "#fff",
+              }}
+              onClick={() => handleAddTreatment()}
+            >
+              ADD TREATMENTS
+            </button>
+            {/* Edit button table */}
+            <div className="text-white  d-flex justify-content-end">
+              <button
+                className="btn d-flex  align-items-center gap-2"
+                style={{
+                  background: "#03193eff",
+                  color: "#fff",
+                  marginLeft: "10px",
+                }}
+                onClick={() => handleEditTreatment()}
+              >
+                {" "}
+                EDIT TREATMENT
+                <img src={editIcon} style={{ width: "18px", height: "18px" }} />
+              </button>
+            </div>{" "}
+            {/* Delete */}
+            <button
+              className="btn d-flex align-items-center gap-2"
+              style={{
+                background: "#03193eff",
+                color: "#fff",
+                marginLeft: "10px",
+              }}
+              onClick={() => deleteTreatment()}
+            >
+              DELETE
+            </button>
+          </div>
+          {/* close button removed; parent action button toggles panel */}
         </div>
       </div>
 
-      <div className={style["tp-table"]}>
-        <div className={style["tp-table-inner"]}>
-          <div className={style["tp-table-head"]}>
-            {[
-              "Asset Type",
-              "District",
-              "County",
-              "Direction",
-              "Total Cost",
-              "Direction Cost",
-              "Indirect Cost Design",
-              "Indirect Cost Row",
-              "Indirect Cost Utilities",
-              "Indirect Cost Utilities",
-            ].map((h) => (
-              <div key={h} className={style["tp-th"]}>
-                {h}
-              </div>
-            ))}
+      {/* Table view */}
+
+      <div style={{ margin: "0 10px" }}>
+        <div className={style["tp-table-scroll"]}>
+          <table
+            className={`table table-bordered mb-0 ${style["tp-table-sticky"]}`}
+          >
+            <thead>
+              <tr>
+                {headers.map((h) => (
+                  <th key={h} scope="col">
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {data.length > 0 ? (
+                data.map((row, i) => (
+                  <tr key={i}>
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={selectedRows.includes(i)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedRows([...selectedRows, i]);
+                          } else {
+                            setSelectedRows(
+                              selectedRows.filter((id) => id !== i)
+                            );
+                          }
+                        }}
+                      />
+
+                      {row.AssetType || "-"}
+                    </td>
+                    <td>{row.DistrictNo || "-"}</td>
+                    <td>{row.CountyCode || "-"}</td>
+                    <td>{row.Direction || "-"}</td>
+                    <td>{row.TotalCost || "-"}</td>
+                    <td>{row.DirectCost || "-"}</td>
+                    <td>{row.DesignCost || "-"}</td>
+                    <td>{row.ROWCost || "-"}</td>
+                    <td>{row.UtilCost || "-"}</td>
+                    <td>{row.OtherCost || "-"}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={headers.length} className="text-center">
+                    No data available
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Form view */}
+      <div style={{paddingTop :"20px", paddingBottom:"20px", maxHeight:"450px", overflow:"auto"}}>
+        <div className={style["tp-forms-row"]}>
+          {/* Project Information */}
+          <div
+            className={`${style["tp-form-card"]} ${style["tp-form-card--lg"]}`}
+          >
+            <div className={style["tp-form-title"]}>Project Information</div>
+            <DynamicForm
+              fields={projectInformationFields}
+              values={formValues}
+              onChange={handleChange}
+              formClassName={style["tp-form-grid"]}
+              fieldWrapperClassName={style["tp-form-field"]}
+              labelClassName={style["tp-form-label"]}
+              inputClassName={style["tp-form-input"]}
+            />
+            <label className={style["tl-toggle-row"]}>
+              <span className={style["tl-toggle"]}>
+                <input
+                  type="checkbox"
+                  className={style["tl-toggle-input"]}
+                  checked={isCommitted}
+                  onChange={(e) => setIsCommitted(e.target.checked)}
+                />
+                <span className={style["tl-toggle-slider"]}></span>
+              </span>
+              <span className={style["tl-toggle-text"]}>IS COMMITTED</span>
+            </label>
           </div>
 
-          <div className={style["tp-table-body"]}>
-           {data.length > 0 ? (
-    data.map((row, i) => (
-      <div key={i} className={style["tp-tr"]}>
-        <div className={style["tp-td"]}>{row.AssetType?row.AssetType:"-"}</div>
-        <div className={style["tp-td"]}>{row.DistrictNo?row.DistrictNo:"-"}</div>
-        <div className={style["tp-td"]}>{row.CountyCode?row.CountyCode:"-"}</div>
-        <div className={style["tp-td"]}>{row.Direction?row.Direction:"-"}</div>
-        <div className={style["tp-td"]}>{row.TotalCost?row.TotalCost:"-"}</div>
-        <div className={style["tp-td"]}>{row.DirectCost?row.DirectCost:"-"}</div>
-        <div className={style["tp-td"]}>{row.DesignCost?row.DesignCost:"-"}</div>
-        <div className={style["tp-td"]}>{row.ROWCost?row.ROWCost:"-"}</div>
-        <div className={style["tp-td"]}>{row.UtilCost?row.UtilCost:"-"}</div>
-        <div className={style["tp-td"]}>{row.OtherCost?row.OtherCost:"-"}</div>
-      </div>
-    ))
-  ) : (
-    <div className={style["tp-tr"]}>
-      <div className={style["tp-td"]} style={{ gridColumn: "1 / -1", textAlign: "center" }}>
-        No data available
-      </div>
-    </div>
-  )}
+          {/* Location Information */}
+          <div
+            className={`${style["tp-form-card"]} ${style["tp-form-card--lg"]}`}
+          >
+            <div className={style["tp-form-title"]}>Location Information</div>
+            <DynamicForm
+              fields={locationInformationFields}
+              values={formValues}
+              onChange={handleChange}
+              formClassName={style["tp-form-grid"]}
+              fieldWrapperClassName={style["tp-form-field"]}
+              labelClassName={style["tp-form-label"]}
+              inputClassName={style["tp-form-input"]}
+            />
           </div>
+
+          {/* Timing */}
+          <div
+            className={`${style["tp-form-card"]} ${style["tp-form-card--sm"]}`}
+          >
+            <div className={style["tp-form-title"]}>Timing</div>
+            <DynamicForm
+              fields={timeFields}
+              values={formValues}
+              onChange={handleChange}
+              formClassName={style["tp-form-grid--column"]}
+              fieldWrapperClassName={style["tp-form-field"]}
+              labelClassName={style["tp-form-label"]}
+              inputClassName={style["tp-form-input"]}
+            />
+          </div>
+
+          {/* Cost */}
+          <div
+            className={`${style["tp-form-card"]} ${style["tp-form-card--lg"]}`}
+          >
+            <div className={style["tp-form-title"]}>Cost</div>
+            <DynamicForm
+              fields={costFields}
+              values={formValues}
+              onChange={handleChange}
+              formClassName={style["tp-form-grid"]}
+              fieldWrapperClassName={style["tp-form-field"]}
+              labelClassName={style["tp-form-label"]}
+              inputClassName={style["tp-form-input"]}
+            />
+          </div>
+        </div>
+        {/* button code */}
+        <div className="d-flex gap-2 flex-row justify-content-end" style={{marginRight:"30px"}}>
+          <button
+            className="btn d-flex align-items-center gap-2"
+            style={{
+              background: "#03193eff",
+              color: "#fff",
+              marginLeft: "10px",
+            }}
+            onClick={() => deleteTreatment()}
+          >
+            UPDATE
+          </button>{" "}
+          <button
+            className="btn d-flex align-items-center gap-2"
+            style={{
+              background: "#03193eff",
+              color: "#fff",
+              marginLeft: "10px",
+            }}
+          >
+            CANCEL
+          </button>
         </div>
       </div>
     </div>

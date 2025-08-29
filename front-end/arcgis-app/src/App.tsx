@@ -346,6 +346,7 @@ function App() {
         }
         const attrsArray = [attrs];
         setSelectedFeature(attrsArray);
+        console.log("attrsArray",attrs)
         setIsTreatmentListOpen(true);
 
         const popupData = buildProjectPopupData(
